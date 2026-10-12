@@ -23,7 +23,7 @@ if(!bloques.length){ console.log('no se encontro ningun script'); process.exit(1
 let t=bloques[bloques.length-1];
 // las interpolaciones ${...} del literal no son JS valido por si solas
 t=t.replace(/\$\{[^{}]*\}/g,'0');
-const tmp='/tmp/geo/_chk_webview.js';
+const tmp=require('path').join(require('os').tmpdir(),'bluedot_chk_webview.js');
 fs.writeFileSync(tmp,t);
 require('child_process').execFileSync('node',['--check',tmp],{stdio:'inherit'});
 console.log('SINTAXIS OK  ('+t.length+' bytes)');

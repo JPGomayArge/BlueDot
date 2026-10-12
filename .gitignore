@@ -19,6 +19,7 @@ salida.txt
 auditoria.txt
 
 # copias y borradores locales
+_github/
 Claude outputs/
 _to_delete/
 *.bak
