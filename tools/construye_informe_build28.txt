@@ -1,0 +1,63 @@
+=== base /tmp/geo/build27.jsx (17M)  02:18:36
+=== astillas  02:18:36
+astillas quitadas: 140  (3.2 g2 en total)
+=== radiografia a  02:18:42
+=== dobles  02:19:26
+sin decidir: 2 pares; anadelos a la tabla como {cede:"id", a:"id"}
+restas: 119  periodos vaciados (eliminados): 0  fallos: 1  entidades tocadas: 6
+=== fusiona  02:19:34
+periodos corregidos 36 | anillos fusionados 43
+=== arregla  02:20:50
+anillos reparados: 17 | astillas borradas: 0 | reparaciones rechazadas por perdida de area: 0
+=== auto_int  02:21:03
+anillos unicos revisados 36921 | con auto-interseccion 0 {}
+=== rellena_huecos  02:21:08
+=== RELLENO DE HUECOS  -10000..2025  (ventana 60 anios, paso 1)
+tramos rellenados: 2108  periodos nuevos (inc): 363  grados2 (sumados por tramo): 757172  fallos de resta: 0
+
+=== radiografia b  02:36:21
+=== dobles 2  02:37:07
+restas: 121  periodos vaciados (eliminados): 0  fallos: 0  entidades tocadas: 6
+=== estructura  02:37:18
+civs 1200 periodos 27358 anillos 271810 | malformados 0 vacios 0 solapes temporales 0 desordenados 0 solapes internos 1543
+=== capitales  02:38:33
+capitales: discrepancias 0
+=== plazas  02:38:36
+plazas: discrepancias 12
+=== radiografia final  02:38:54
+POR ERA  (media de grados2 por foto)
+era            costura enclave  region aislado | doble E-E doble E-C | vivas
+-10000..-3000       36     142    1210      31 |         0         0 |    96
+-3000..-1000        63      62     398      17 |         0         0 |   158
+-1000..1            63      59     316       6 |         0         0 |   198
+1..500              62      63     315      16 |         0         0 |   187
+500..1000           68      54     328      25 |         0         0 |   226
+1000..1300          82      34     303       5 |         0         0 |   284
+1300..1500          81      31     258       2 |         0         0 |   336
+1500..1700          73      39     232       5 |         1         0 |   326
+1700..1800          74      43     163       5 |         0         0 |   322
+1800..1900          56      40     108       4 |         0         1 |   285
+1900..1950          32      38      92       5 |         0         0 |   128
+1950..2026          14      30      17     147 |         0         0 |   163
+
+dobleEE_max=0.70 dobleEC_era_max=1.00
+periodos vacios: 0   anillos con auto-interseccion: 0
+=== revision  02:39:47
+REVISION_ORDEN renovada (1200 entidades)
+=== render  02:41:15
+piezas sin restar vacios: 2
+anillos: 108 (de 2 poligonos con agujero)  vertices: 3393  -> base_tierra.json 48 KB
+escrito /tmp/geo/build28.jsx.trabajo.jsx
+=== sintaxis  02:41:16
+SINTAXIS OK  (734864 bytes) / JSX OK  (17.1 MB)
+
+COMPUERTAS
+  G1a sintaxis webview: ok
+  G1b jsx: ok
+  G2 doble estado-estado <= 1 g2 por anio: ok
+  G3 doble con sustrato <= 2 g2 de media por era: ok
+  G4 capitales (discrepancias 0 <= 0): ok
+  G5 plazas (discrepancias 12 <= 12): ok
+  G6 periodos vacios 0, auto-intersecciones 0: ok
+=== LISTO -> /tmp/geo/build28.jsx (18M)  02:41:17
+huecos sin regla (para la tabla): /tmp/geo/_construye/huecos_pendientes.json

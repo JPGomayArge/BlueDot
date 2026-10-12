@@ -1,0 +1,55 @@
+name: Proponer una corrección
+description: Un dato del mapa está mal o falta. Di cuál, qué debería decir y en qué fuente te apoyas.
+title: "[corrección] "
+labels: ["corrección"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias. Cada propuesta queda registrada en público, se verifica automáticamente y se revisa antes de entrar en el mapa. Lo único imprescindible es la fuente: BlueDot no acepta un dato que no diga de dónde sale.
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: Tipo
+      options:
+        - evento
+        - persona
+        - civilizacion
+        - proceso (ruta, guerra, migración, religión, idioma)
+        - otro
+    validations:
+      required: true
+  - type: input
+    id: identificador
+    attributes:
+      label: Identificador
+      description: El id que aparece en la ficha (se rellena solo si vienes desde la app). Si no lo sabes, el nombre.
+      placeholder: apolo_11, newton, russia@1700
+  - type: input
+    id: contexto
+    attributes:
+      label: Contexto
+      description: Año, lugar o periodo al que se refiere.
+      placeholder: 1969 · Cabo Cañaveral
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qué está mal o qué falta
+      placeholder: La fecha es 1968, no 1969. / Falta la batalla de Ayacucho. / La frontera de Malí en 1330 no llegaba al Atlántico.
+    validations:
+      required: true
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Qué debería decir
+      description: El valor correcto, lo más concreto posible (año, coordenadas, título, categoría, importancia, forma).
+    validations:
+      required: true
+  - type: input
+    id: fuente
+    attributes:
+      label: Fuente
+      description: Artículo de Wikipedia, libro con página, artículo académico, ítem de Wikidata. Sin fuente no se puede aceptar.
+      placeholder: Wikipedia es "Apolo 11"; Restall (2003), p. 42; Q43653
+    validations:
+      required: true

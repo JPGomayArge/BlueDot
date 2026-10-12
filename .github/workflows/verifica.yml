@@ -1,0 +1,29 @@
+# Cada propuesta de cambio pasa por las mismas verificaciones que usa el autor:
+# el canon de eventos (esquema, duplicados, coordenadas en tierra, cuotas) y la
+# sintaxis de la app. Si falla, el pull request lo dice en rojo y no se mezcla.
+name: verifica
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  datos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: dependencias de las herramientas
+        run: cd tools && npm install --no-audit --no-fund
+      - name: canon de eventos
+        run: cd data/canon && node verifica_eventos.js
+      - name: construir eventos y verificar el resultado
+        run: |
+          cd data/canon
+          node construye_eventos.js ../fondo_wikidata.json /tmp/events_extended.json
+          node verifica_eventos.js --json /tmp/events_extended.json
+      - name: sintaxis de la app
+        run: |
+          cd tools
+          node chksintaxis.js ../app/index.jsx
+          NODE_PATH=./node_modules node chkjsx.js ../app/index.jsx

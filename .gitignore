@@ -1,26 +1,23 @@
-﻿node_modules/
+# dependencias
+node_modules/
+tools/node_modules/
+
+# carpetas nativas generadas por Expo (se regeneran con `npx expo prebuild`)
+ios/
+android/
 .expo/
-.expo-shared/
-dist/
-web-build/
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-.metro-health-check*
-ios/build/
-android/build/
-android/app/build/
-android/.gradle/
+
+# intermedios de la construcción del mapa
+_construye/
+*.trabajo.jsx
+*.fallido.jsx
+*.informe.txt
+salida.txt
+auditoria.txt
+
+# copias y borradores locales
+Claude outputs/
+_to_delete/
+*.bak
+
 .DS_Store
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-.env
-.env.local
-.env*.local
-.vscode/
-.idea/
-*.tsbuildinfo
-bluedot-tools/node_modules/

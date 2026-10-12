@@ -1,0 +1,10 @@
+name = "bluedot-ai-chat"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Optional: override the default model without touching code.
+# Set with: wrangler secret put MODEL   (or use [vars] for a non-secret value)
+# Default used if unset: claude-haiku-4-5-20251001
+#
+# [vars]
+# MODEL = "claude-haiku-4-5-20251001"

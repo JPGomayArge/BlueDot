@@ -1,10 +1,10 @@
 {
   "name": "bluedot-tools",
-  "version": "1.0.0",
   "private": true,
-  "description": "Instrumental de geometria y validacion del mapa de BlueDot",
+  "description": "Herramientas de construcción y verificación del mapa de BlueDot",
   "dependencies": {
-    "polygon-clipping": "^0.15.7",
+    "@babel/parser": "^7.24.0",
+    "polygon-clipping": "^0.15.3",
     "topojson-client": "^3.1.0",
     "world-atlas": "^2.0.2"
   }

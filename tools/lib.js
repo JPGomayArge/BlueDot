@@ -40,11 +40,16 @@ function save(src,R,CIV,path){
    const f=['start:'+pe.start,'end:'+pe.end,"rings:'"+ids+"'"];
    if(pe.wikiTitle)f.push("wikiTitle:'"+esc(pe.wikiTitle)+"'");
    if(pe.name)f.push("name:'"+esc(pe.name)+"'");
+   // inc:1 marca un periodo cuyo contorno es un relleno y no una frontera
+   // conocida. El renderizador lo dibuja apagado y a trazos.
+   if(pe.inc)f.push("inc:1");
    return '{ '+f.join(', ')+' }'}).join(',\n      ');
   const cf=["id:'"+c.id+"'"];
   // kind:'cultura' distingue las areas culturales de las entidades politicas
   if(c.kind)cf.push("kind:'"+c.kind+"'");
   cf.push("name:'"+esc(c.name)+"'","color:'"+c.color+"'");
+  // etiqueta: el rotulo corto del globo. El nombre largo se queda para la ficha.
+  if(c.etiqueta)cf.push("etiqueta:'"+esc(c.etiqueta)+"'");
   if(c.wikiTitle)cf.push("wikiTitle:'"+esc(c.wikiTitle)+"'");
   return '  { '+cf.join(', ')+',\n    periods:[\n      '+per+'\n    ] }'}).join(',\n');
  let out=src.slice(0,R.a)+'[\n'+lines+'\n]'+src.slice(R.b+1);

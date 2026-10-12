@@ -25,7 +25,21 @@ for(const [id,ops] of Object.entries(OPS)){
       try{res=modo==='menos'?pc.difference(mio,otro):pc.union(mio,otro)}catch(e){continue}
       const lim=R.limpia(res,3e-4);
       if(lim.length)p.rings=lim;}}
-  if(!process.env.NOCARVE)c.periods=carve(c,rivales(CIV,c),3e-4);
+  // El tallado se limita a los periodos QUE SE HAN TOCADO. Antes se tallaba la
+  // entidad entera despues de cada adicion, y eso, en una entidad global como
+  // 'british' -669 rivales, 453.000 vertices-, son mas de cien mil diferencias
+  // de poligonos para una adicion que afecta a tres periodos: dos horas de
+  // reloj en la ronda 12. Ademas es incorrecto, porque volvia a tallar
+  // geometria que nadie habia modificado y podia cambiarla en silencio.
+  if(!process.env.NOCARVE){
+    const tocado=p=>ops.some(([ini,fin])=>p.start<fin&&p.end>ini);
+    const dentro=c.periods.filter(tocado), fuera=c.periods.filter(p=>!tocado(p));
+    if(dentro.length){
+      const sub={id:c.id,periods:dentro};
+      const nuevos=carve(sub,rivales(CIV,sub),3e-4);
+      c.periods=fuera.concat(nuevos).sort((a,b)=>a.start-b.start||a.end-b.end);
+    }
+  }
   const ar=c.periods.map(p=>p.rings.reduce((s,r)=>s+L.rA(r),0));
   console.log(id.padEnd(20),'areas '+antesA.map(x=>x.toFixed(0)).join('/')+'  ->  '+ar.map(x=>x.toFixed(0)).join('/'));}
 for(const c of CIV)c.periods.sort((a,b)=>a.start-b.start||a.end-b.end);

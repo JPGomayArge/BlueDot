@@ -36,8 +36,18 @@ for(const [idP,idG] of PARES){
    // sino de modelo (arcos que se pisan, o una entidad que ya no deberia
    // existir en ese tramo). Se avisa para arreglarlo a mano.
    if(fuera.length)p.rings=fuera;
-   else contenidos.push(p.start+'..'+p.end);}
+   else {contenidos.push(p.start+'..'+p.end);
+    // Con BORRA_CONTENIDOS=1 el periodo se elimina en vez de conservarse. Es
+    // lo correcto cuando el perdedor es un area cultural y el ganador un
+    // Estado: el mapa pinta quien gobierna, y una cultura entera dentro de un
+    // imperio simplemente no se muestra esos anios. Deja hueco temporal, que
+    // es lo que de verdad hubo. No usarlo entre dos Estados: ahi que un arco
+    // quede dentro de otro es un problema de modelo que hay que mirar a mano.
+    if(process.env.BORRA_CONTENIDOS)p.borrar=true;}}
   a1+=p.rings.reduce((s,r)=>s+L.rA(r),0);}
+ if(process.env.BORRA_CONTENIDOS){const antes=P.periods.length;
+  P.periods=P.periods.filter(p=>!p.borrar);
+  if(P.periods.length<antes)console.log('   '+idP+': '+(antes-P.periods.length)+' periodos borrados por quedar enteros dentro de '+idG);}
  tocados++;
  console.log((idP+' <- '+idG).padEnd(42),'area',a0.toFixed(1),'->',a1.toFixed(1)+
   (contenidos.length?'   !! '+idP+' queda dentro de '+idG+' en '+contenidos.slice(0,4).join(' ')+(contenidos.length>4?' ...':''):''));}

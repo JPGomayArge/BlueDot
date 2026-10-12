@@ -1,143 +1,59 @@
-# Instrumental del mapa de BlueDot
+# tools/ — cómo se construye y se comprueba el mapa de BlueDot
 
-Scripts de geometría y validación del bloque `CIVILIZATIONS` de `app/index.jsx`.
+Todo el dato del mapa vive en `app/index.jsx` (835 estados + 365 áreas
+culturales, `kind:'cultura'`, con `periods:[{start,end,rings}]`). Estas
+herramientas lo leen y lo reescriben. Ninguna necesita más que Node 18+ y los
+módulos de `tools/node_modules` (`polygon-clipping`, `topojson-client`,
+`world-atlas`; para `chkjsx.js`, `@babel/parser`: `cd tools && npm i @babel/parser`).
 
-Vive **dentro del repositorio** a propósito. La primera versión de este
-instrumental existió sólo en un contenedor efímero y se perdió entera cuando el
-contenedor se recicló, aunque el mapa estaba a salvo. No repitamos eso.
+## El único comando que hace falta
 
-## Instalación
+    tools/construye.sh app/index.jsx app/index.nuevo.jsx
 
-```bash
-cd tools && npm install
-```
+Reconstruye el mapa desde la base, pasa todas las herramientas en orden y
+**solo escribe la salida si pasa las compuertas** (sintaxis, dobles, capitales,
+plazas, estructura). Si una falla, deja `app/index.nuevo.jsx.fallido.jsx` y el
+informe en `app/index.nuevo.jsx.informe.txt`. Tarda entre una y dos horas; los
+intermedios quedan en `app/_construye/`. Con `SALTAR_AMBITOS=1` no rehace los
+sustratos por tablas (unos 40 minutos menos) cuando la base ya los trae.
 
-Necesita `polygon-clipping`, `topojson-client` y `world-atlas`. Si el entorno
-donde trabajas no tiene red, instala en uno que sí la tenga y copia
-`node_modules`.
+Lo que decide la forma del mapa está en **tablas**, no en código:
 
-## Cómo se apunta al mapa
-
-Todos los scripts leen y escriben `../app/index.jsx` por defecto. Para trabajar
-sobre otra copia:
-
-```bash
-export JSX=/ruta/a/index.jsx
-```
-
-Trabaja siempre sobre una copia y valida antes de sustituir el original.
-
-## Formato de los datos
-
-Cada civilización es `{ id, kind?, name, color, wikiTitle?, periods:[...] }`.
-`kind:'cultura'` marca las áreas culturales, que el usuario puede apagar por
-separado en la interfaz.
-
-Cada periodo es `{ start, end, rings, name?, wikiTitle? }`. Los anillos se
-guardan una sola vez en el diccionario `__RG` al principio del archivo y cada
-periodo los referencia por índice en base 36. Sin eso el archivo pasaría de
-6 MB a más de 30.
-
-## Dos reglas del motor que hay que tener siempre presentes
-
-**Paridad.** El globo rellena cada anillo por separado y combina por paridad.
-Dos anillos de la misma entidad que se pisan se **anulan** en la zona común y
-dejan un agujero. Por eso `estructura.js` vigila los solapes internos y
-`fusiona_solapes.js` los une.
-
-**No hay agujeros.** Un polígono con hueco interior no se puede representar.
-Hay dos técnicas: el **ojo de cerradura** (`geoutil.keyhole`, que conecta el
-hueco al contorno con una ranura estrecha) y el **corte vertical**
-(`recorte.parte`, que trocea el polígono). Preferimos el corte: las ranuras de
-ancho cero del ojo de cerradura disparan el detector de auto-intersecciones, y
-"repararlas" vuelve a rellenar el agujero y devuelve el doble pintado.
-
-## Validación — pásala entera antes de cada entrega
-
-| script | qué comprueba | resultado esperado |
-|---|---|---|
-| `estructura.js` | anillos malformados, periodos vacíos, solapes temporales dentro de una entidad, solapes internos entre anillos | todo a cero |
-| `auto_int.js` | anillos que se cruzan a sí mismos, que producen cuñas blancas en el WebView | cero |
-| `dobles_exacto.js` | doble pintado REAL, intersecando poligonos: la definicion, no una muestra | a la baja; ver BASELINE.md |
-| `barrido.js '[-4000,2000,100]'` | sonda rapida por muestreo de celdas. Su "cero" NO es una prueba: solo dice que ninguno de sus ~6.100 puntos cayo en zona compartida | orientativo |
-| `capitales.js` | que cada entidad pinte de verdad su propia capital | cero discrepancias |
-| `audit.js` | contornos que no parecen geografía: cajas, óvalos, trazos gruesos | mínimo, revisando los nuevos |
-| `intermitencias.js` | celdas que se apagan y vuelven a encenderse | a la baja |
-
-Además, fuera de aquí: `npx esbuild app/index.jsx --loader:.jsx=jsx
---jsx=automatic --format=esm --outfile=/tmp/out.js` debe dar cero errores.
-
-`capitales.js` es el que más errores de bulto ha destapado. Cuando falla no es
-que la ciudad esté mal: es que un recorte mal dirigido le ha quitado a un
-imperio su propia capital.
-
-## Edición
-
-| script | para qué |
+| tabla | qué decide |
 |---|---|
-| `crea.js defs.js` | crear civilizaciones nuevas |
-| `sustituye.js ops.js` | reemplazar la geometría de un tramo de años |
-| `anade.js ops.js` | añadir (`mas`) o quitar (`menos`) una región |
-| `resta_civ.js pares.js` | resolver doble pintado: `[perdedor, ganador]` |
-| `parte.js años.js` | partir periodos en años concretos |
-| `funde.js` | fundir periodos consecutivos idénticos |
-| `arregla_auto.js '["id"]'` | reparar auto-intersecciones |
-| `fusiona_solapes.js` | unir anillos de una misma entidad que se pisan |
+| `ambitos_siberia.js`, `ambitos_norteamerica.js`, `ambitos_africa.js`, `ambitos_resto.js` | la forma de cada área cultural: bioma de Köppen (`clima.js`), región física de Natural Earth (`fisico.js`), lado de un río, caja de trabajo; el orden de la tabla decide quién cede |
+| `ambitos_parches.js`, `ambitos_parches2.js` | filas sueltas aplicadas después de las tablas |
+| `dobles_tabla.js` | cuando dos entidades pintan lo mismo, quién cede `{cede, a, desde?, hasta?}`; sin entrada, el sustrato cede al estado y entre sustratos cede el que va después en las tablas |
+| `vacios.js` | dónde no vivió nadie (hielo, erg, islas antes de su poblamiento), con la fuente de cada entrada |
+| `plazas_base.js`, `capitales.js` | testigos: ciudad, año, quién debe pintarla |
+| `tramos_radio.js` | copias de anillos de un periodo a otro tramo (arreglos puntuales) |
 
-`anade.js` opera sobre el **periodo entero** que solape el rango, así que pasa
-`parte.js` antes para alinear los cortes. Con `NOCARVE=1` no talla contra
-rivales; sin él, la entidad procesada es siempre la que **pierde** el
-territorio en disputa.
+Para cambiar el mapa: se edita la tabla, se vuelve a construir. No se tocan
+anillos a mano.
 
-## Trampas conocidas
+## Qué hace cada paso de `construye.sh`
 
-**La máscara de tierra tiene resolución 1:50 millones.** Ciudades reales caen
-en agua: Estambul, Copenhague, Goa, Mahdia, Tromsø, Srirangapatna. Antes de
-declarar un agujero, comprueba con `tierra.enTierra(pt)` que el punto es tierra
-para el mapa base. Varias veces hemos perseguido huecos que no existían.
+1. `remodela_fisico.js <tabla>` — rehace las áreas culturales de la tabla a partir de bioma/región/río, restando estados y vecinos ya rehechos (`IGNORA=2`: no resta a los que vienen después en la tabla).
+2. `astillas.js` — quita esquirlas (largas, estrechas, diminutas).
+3. `radiografia.js` → `resuelve_dobles.js` — localiza y resuelve los solapes con la regla del sustrato y `dobles_tabla.js`.
+4. `fusiona_solapes.js`, `arregla_auto.js`, `auto_int.js` — anillos que se cruzan a sí mismos.
+5. `rellena_huecos.js` — **el sustrato vuelve donde queda suelo vacío**: si una celda sin dueño la cubrió antes un área cultural viva, se prolonga en el espacio; si la cubrió una que acabó hace menos de 60 años, se prolonga en el tiempo (marcada `inc:1`). Lo que ningún área cultural cubrió nunca queda en `_construye/huecos_pendientes.json`: es una decisión humana (falta una entidad) y va a las tablas.
+6. `resuelve_dobles.js` otra vez, `estructura.js`.
+7. `capitales.js`, `plazas.js`, `radiografia.js` — comprobaciones.
+8. `orden_revision.js` + `revision_app.js` — el modo revisión de la app (orden de entidades a mirar, por tamaño y duración).
+9. `base_tierra.js` + `render_base.js` — el renderizador: velo neutro bajo la tierra sin entidad, áreas culturales sin línea nítida.
+10. `chksintaxis.js`, `chkjsx.js` — sintaxis del WebView y del JSX.
 
-**`arregla_auto.js` lleva guarda de área.** Podar el vértice ofensor puede
-amputar medio polígono; si la reparación pierde más del 3%, se descarta. Sin
-esa guarda le arrancó el norte a Vijayanagara entre 1490 y 1509 sin avisar.
+## Mirar
 
-**Cuidado al rellenar oscuridad.** Un puente sólo debe ampliar la geometría de
-periodos que ya existen, nunca crear periodos nuevos: si no, se alargan arcos y
-resucitan culturas muertas siglos después de desaparecer. Ya pasó una vez, con
-144 arcos estirados, algunos casi cinco mil años.
+- `JSX=app/index.jsx node radiografia.js` — el mapa año por año: huecos, dobles, parpadeos, saltos, formas (cajas, púas, motas). `--ano 1648` para una foto. Las rectas que coinciden con una frontera actual (`paises_ne.js`) no cuentan como caja.
+- `JSX=app/index.jsx node pinta.js 1700 -125,-30,-56,45 salida.png` — un render de una ventana en un año (`SOLO=id,id` para aislar).
+- `JSX=app/index.jsx node rellena_huecos.js` (sin `--aplica`) — informe de qué rellenaría y qué huecos no tienen regla.
+- En la app: Ajustes → Revisión del mapa recorre las entidades en el orden de `orden_revision.json`; las notas se exportan como JSON y se convierten en filas de tabla.
 
-**Las cifras de `celdas.json` se regeneraron.** La rejilla anterior se perdió y
-ésta se generó de nuevo con `celdas.js` (6.104 celdas, antes 6.713). Las
-medidas de intermitencia posteriores a la regeneración no son comparables con
-las anteriores. Los umbrales de `audit.js` también están recalibrados.
+## Convenciones
 
-## Qué corre sin dependencias
-
-`capitales.js`, `auto_int.js` y `estructura.js` funcionan con Node pelado, sin
-`npm install`. `estructura.js` avisa y se salta el chequeo de solapes internos
-si no encuentra `polygon-clipping`. Todo lo que edita geometría sí necesita las
-dependencias, así que instálalas en un entorno con red.
-
-## Estado de las herramientas
-
-Las diecisiete se han ejecutado al menos una vez contra el mapa real y todas
-funcionan. `geoutil.keyhole` se eliminó: era código muerto y además
-implementaba la técnica descartada.
-
-Lo que **no** está resuelto:
-
-- En un entorno sin red no se puede hacer `npm install`, así que allí sólo
-  corren `estructura.js`, `auto_int.js` y `capitales.js`. Todo lo que edita
-  geometría necesita las dependencias.
-- Estos archivos están en el repositorio pero **no versionados**. Hasta que no
-  entren en git, un `git clean` se los lleva.
-
-## No ejecutes git a través del puente de dispositivo
-
-Un `git status` lanzado desde la sesión remota sobre la carpeta montada crea
-`.git/index.lock` y **no puede borrarlo** después: el archivo queda con el
-usuario de la sesión y el puente no tiene permiso de borrado. El resultado es
-que el siguiente `git commit` que hagas tú falla con "Unable to create
-index.lock: File exists", y hay que quitarlo a mano.
-
-Ya pasó una vez. Los comandos de git se ejecutan desde tu terminal, no desde
-aquí.
+- Anillos en grados, redondeados a centésimas; el renderizador rellena por paridad y no dibuja las aristas rectas que tienen el mismo territorio a los dos lados (`recorte.parte` abre los agujeros con ranuras).
+- Un estado pinta lo que **controla**, no lo que reclama. Un área cultural pinta donde **vivía** una población; cede siempre al estado.
+- El mapa admite lo que no sabe: `inc:1` en un periodo = contorno inferido (relleno apagado); el velo de `base_tierra.js` = tierra sin entidad registrada; negro = vacío declarado en `vacios.js`.
+- Nunca dos herramientas pesadas a la vez (memoria). `rellena_huecos.js` va con `--max-old-space-size=3800`.
