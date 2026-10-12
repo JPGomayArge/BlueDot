@@ -1,14 +1,18 @@
 # tools/ — cómo se construye y se comprueba el mapa de BlueDot
 
-Todo el dato del mapa vive en `app/index.jsx` (835 estados + 365 áreas
-culturales, `kind:'cultura'`, con `periods:[{start,end,rings}]`). Estas
-herramientas lo leen y lo reescriben. Ninguna necesita más que Node 18+ y los
+Todo el dato del mapa vive en `data/mapa.json` (`{ version, rings, civilizations }`:
+835 estados + 365 áreas culturales, `kind:'cultura'`, con `periods:[{start,end,rings}]`;
+los anillos van en un diccionario y cada periodo los referencia por índice). La app
+lo importa (`import MAPA from '../data/mapa.json'`) y no lleva dato dentro. Estas
+herramientas lo leen y lo reescriben a través de `lib.js`, que también entiende
+la forma vieja (el dato dentro de `index.jsx`); `separa_mapa.js` convierte de una
+a otra. Ninguna necesita más que Node 18+ y los
 módulos de `tools/node_modules` (`polygon-clipping`, `topojson-client`,
 `world-atlas`; para `chkjsx.js`, `@babel/parser`: `cd tools && npm i @babel/parser`).
 
 ## El único comando que hace falta
 
-    tools/construye.sh app/index.jsx app/index.nuevo.jsx
+    tools/construye.sh data/mapa.json data/mapa.nuevo.json app/index.jsx
 
 Reconstruye el mapa desde la base, pasa todas las herramientas en orden y
 **solo escribe la salida si pasa las compuertas** (sintaxis, dobles, capitales,
@@ -46,9 +50,9 @@ anillos a mano.
 
 ## Mirar
 
-- `JSX=app/index.jsx node radiografia.js` — el mapa año por año: huecos, dobles, parpadeos, saltos, formas (cajas, púas, motas). `--ano 1648` para una foto. Las rectas que coinciden con una frontera actual (`paises_ne.js`) no cuentan como caja.
-- `JSX=app/index.jsx node pinta.js 1700 -125,-30,-56,45 salida.png` — un render de una ventana en un año (`SOLO=id,id` para aislar).
-- `JSX=app/index.jsx node rellena_huecos.js` (sin `--aplica`) — informe de qué rellenaría y qué huecos no tienen regla.
+- `JSX=data/mapa.json node radiografia.js` — el mapa año por año: huecos, dobles, parpadeos, saltos, formas (cajas, púas, motas). `--ano 1648` para una foto. Las rectas que coinciden con una frontera actual (`paises_ne.js`) no cuentan como caja.
+- `JSX=data/mapa.json node pinta.js 1700 -125,-30,-56,45 salida.png` — un render de una ventana en un año (`SOLO=id,id` para aislar).
+- `JSX=data/mapa.json node rellena_huecos.js` (sin `--aplica`) — informe de qué rellenaría y qué huecos no tienen regla.
 - En la app: Ajustes → Revisión del mapa recorre las entidades en el orden de `orden_revision.json`; las notas se exportan como JSON y se convierten en filas de tabla.
 
 ## Convenciones

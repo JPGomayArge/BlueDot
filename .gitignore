@@ -7,6 +7,9 @@ ios/
 android/
 .expo/
 
+# paquetes de eventos: los publica la acción de GitHub como release
+data/paquetes/
+
 # intermedios de la construcción del mapa
 _construye/
 *.trabajo.jsx

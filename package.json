@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "expo": "^57.0.0",
+    "expo-file-system": "~57.0.7",
     "expo-splash-screen": "~57.0.2",
     "expo-status-bar": "~57.0.0",
     "phosphor-react-native": "^3.0.6",

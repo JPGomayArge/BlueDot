@@ -1,16 +1,22 @@
 #!/bin/bash
 # CONSTRUYE EL MAPA DE BLUEDOT DESDE LA BASE, CON COMPUERTAS.
 #
-# Un solo comando reconstruye app/index.jsx a partir de una base y de las
+# Un solo comando reconstruye data/mapa.json a partir de una base y de las
 # tablas de tools/, en el orden que hace falta, y SOLO escribe la salida si
 # pasa las compuertas de calidad. Si una falla, deja el intermedio en
-# <salida>.fallido.jsx y el informe en <salida>.informe.txt, y sale con error.
+# <salida>.fallido.json y el informe en <salida>.informe.txt, y sale con error.
 # Asi la calidad del mapa deja de depender de que alguien se acuerde de pasar
 # cada herramienta: o pasa todo, o no sale nada.
 #
-#   tools/construye.sh <base.jsx> <salida.jsx>
+#   tools/construye.sh <base.json> <salida.json> [index.jsx]
+#     base.json    el dato del mapa de partida (data/mapa.json)
+#     salida.json  donde dejar el mapa construido
+#     index.jsx    (opcional) la app; se le renuevan el orden de revision y el
+#                  velo de tierra en una copia <salida>.index.jsx, nunca en sitio
 #   SALTAR_AMBITOS=1     no rehace los sustratos por tablas (la base ya los trae)
 #   NODE_PATH=...        donde esta @babel/parser si no esta en tools/node_modules
+#   (la forma vieja, con el dato dentro de index.jsx, sigue funcionando si se le
+#    da un .jsx como base: lib.js entiende las dos)
 #
 # PASOS
 #   1. sustratos por bioma/region/rio (ambitos_*.js, remodela_fisico.js)
@@ -31,15 +37,17 @@
 #   G6  periodos sin anillos: 0; anillos con auto-interseccion: 0
 set -u
 AQUI="$(cd "$(dirname "$0")" && pwd)"
-BASE="${1:?uso: construye.sh <base.jsx> <salida.jsx>}"; SALIDA="${2:?uso: construye.sh <base.jsx> <salida.jsx>}"
+BASE="${1:?uso: construye.sh <base.json> <salida.json> [index.jsx]}"; SALIDA="${2:?uso: construye.sh <base.json> <salida.json> [index.jsx]}"; APP="${3:-}"
 DOBLE_EE_MAX="${DOBLE_EE_MAX:-1}"; DOBLE_EC_MAX="${DOBLE_EC_MAX:-2}"; CAP_MAX="${CAP_MAX:-0}"; PLAZAS_MAX="${PLAZAS_MAX:-12}"
-W="$SALIDA.trabajo.jsx"; INF="$SALIDA.informe.txt"; TMP="$(dirname "$SALIDA")/_construye"
+EXT="${BASE##*.}"; W="$SALIDA.trabajo.$EXT"; INF="$SALIDA.informe.txt"; TMP="$(dirname "$SALIDA")/_construye"
 mkdir -p "$TMP"; : > "$INF"
 cd "$AQUI"
 export JSX="$W"
 export NODE_PATH="${NODE_PATH:-$AQUI/node_modules}"
 log(){ echo "=== $1  $(date +%H:%M:%S)" | tee -a "$INF"; }
-falla(){ echo "!! COMPUERTA FALLIDA: $1" | tee -a "$INF"; mv -f "$W" "$SALIDA.fallido.jsx"; echo "   intermedio en $SALIDA.fallido.jsx, informe en $INF"; exit 1; }
+falla(){ echo "!! COMPUERTA FALLIDA: $1" | tee -a "$INF"; mv -f "$W" "$SALIDA.fallido.$EXT"; echo "   intermedio en $SALIDA.fallido.$EXT, informe en $INF"; exit 1; }
+# la app: con base .jsx (forma vieja) es el propio trabajo; con base .json es la copia de index.jsx
+if [ "$EXT" = "jsx" ]; then WAPP="$W"; elif [ -n "$APP" ]; then WAPP="$SALIDA.index.jsx"; cp "$APP" "$WAPP"; chmod u+w "$WAPP"; else WAPP=""; fi
 
 cp "$BASE" "$W"; chmod u+w "$W"
 log "base $BASE ($(du -h "$BASE" | cut -f1))"
@@ -91,11 +99,13 @@ echo "periodos vacios: $VAC   anillos con auto-interseccion: $AUT" >> "$INF"
 
 # --- 6. modo revision, velo y lineas de sustrato ------------------------------------
 log "revision"; node orden_revision.js > "$TMP/orden_revision.json" 2>/dev/null; cp "$TMP/orden_revision.json" "$AQUI/orden_revision.json"
-ORDEN="$TMP/orden_revision.json" node revision_app.js --aplica 2>&1 | tail -1 >> "$INF"
-log "render"; node base_tierra.js >> "$INF" 2>&1; node render_base.js "$W" --aplica 2>&1 | tail -1 >> "$INF"
+if [ -n "$WAPP" ]; then
+  ORDEN="$TMP/orden_revision.json" JSX="$WAPP" node revision_app.js --aplica 2>&1 | tail -1 >> "$INF"
+  log "render"; node base_tierra.js >> "$INF" 2>&1; node render_base.js "$WAPP" --aplica 2>&1 | tail -1 >> "$INF"
+else echo "(sin index.jsx: no se renuevan orden de revision ni velo)" >> "$INF"; fi
 
 # --- 7. sintaxis y compuertas ---------------------------------------------------------
-log "sintaxis"; S1=$(node chksintaxis.js "$W" 2>&1 | tail -1); S2=$(node chkjsx.js "$W" 2>&1 | tail -1); echo "$S1 / $S2" >> "$INF"
+if [ -n "$WAPP" ]; then log "sintaxis"; S1=$(node chksintaxis.js "$WAPP" 2>&1 | tail -1); S2=$(node chkjsx.js "$WAPP" 2>&1 | tail -1); else S1="SINTAXIS OK (sin app)"; S2="JSX OK (sin app)"; fi; echo "$S1 / $S2" >> "$INF"
 echo "" >> "$INF"; echo "COMPUERTAS" >> "$INF"
 G=0
 case "$S1" in *"SINTAXIS OK"*) echo "  G1a sintaxis webview: ok" >> "$INF";; *) echo "  G1a sintaxis webview: MAL ($S1)" >> "$INF"; G=1;; esac
@@ -105,8 +115,9 @@ case "$S2" in *"JSX OK"*) echo "  G1b jsx: ok" >> "$INF";; *"falta @babel"*) ech
 [ "${CAP:-999}" -le "$CAP_MAX" ] && echo "  G4 capitales (discrepancias $CAP <= $CAP_MAX): ok" >> "$INF" || { echo "  G4 capitales: MAL ($CAP discrepancias)" >> "$INF"; G=1; }
 [ "${PLZ:-999}" -le "$PLAZAS_MAX" ] && echo "  G5 plazas (discrepancias $PLZ <= $PLAZAS_MAX): ok" >> "$INF" || { echo "  G5 plazas: MAL ($PLZ discrepancias)" >> "$INF"; G=1; }
 [ "$VAC" = "0" ] && [ "$AUT" = "0" ] && echo "  G6 periodos vacios 0, auto-intersecciones 0: ok" >> "$INF" || { echo "  G6 estructura: MAL (vacios $VAC, auto-int $AUT)" >> "$INF"; G=1; }
-if [ "$G" != "0" ]; then falla "ver $INF"; fi
+if [ "$G" != "0" ]; then [ -n "$WAPP" ] && [ "$WAPP" != "$W" ] && rm -f "$WAPP"; falla "ver $INF"; fi
 mv -f "$W" "$SALIDA"
 log "LISTO -> $SALIDA ($(du -h "$SALIDA" | cut -f1))"
+[ -n "$WAPP" ] && [ "$WAPP" != "$W" ] && log "app -> $WAPP (copiar a app/index.jsx junto con $SALIDA en data/mapa.json)"
 echo "huecos sin regla (para la tabla): $TMP/huecos_pendientes.json" >> "$INF"
 cat "$INF"

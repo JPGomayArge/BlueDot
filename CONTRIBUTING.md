@@ -5,7 +5,7 @@ Gracias por querer mejorar el mapa. Tres reglas lo resumen todo:
 1. **Todo dato lleva fuente.** Un año, una coordenada, una frontera, un nombre:
    si no dice de dónde sale, no entra. Wikipedia vale como punto de partida;
    un libro con página o un artículo académico valen más.
-2. **Se cambian las tablas, no los resultados.** `app/index.jsx` y
+2. **Se cambian las tablas, no los resultados.** `data/mapa.json` y
    `data/events_extended.json` se construyen con las herramientas de `tools/`
    y `data/canon/`. Un cambio hecho a mano sobre ellos se pierde en la
    siguiente construcción y no se puede revisar.
@@ -31,8 +31,14 @@ cd data/canon
 # edita canon_05_contemporanea.js (por ejemplo)
 node verifica_eventos.js              # esquema, duplicados, mar, cuotas
 node construye_eventos.js ../fondo_wikidata.json ../events_extended.json
+node empaqueta.js                     # eventos_base.json (va en la app) y paquetes/ por era
 node verifica_wiki.js                 # (con red) que los títulos de Wikipedia existan
 ```
+
+La app lleva dentro `data/eventos_base.json` (el canon y el fondo de
+importancia 2). El fondo detallado va en paquetes por era que la acción
+`publica datos` sube como release cuando el cambio entra en `main`; la app los
+descarga a elección de quien la usa. No se suben a mano.
 
 Cada entrada nueva lleva `fuente`, y pon tu usuario en `autor`. No marques
 `revisado` tú mismo: lo marca quien revisa el pull request.
@@ -47,7 +53,7 @@ en `tools/plazas_base.js` y `tools/capitales.js`. `tools/README.md` explica
 cada tabla. Después:
 
 ```
-tools/construye.sh app/index.jsx app/index.nuevo.jsx
+tools/construye.sh data/mapa.json data/mapa.nuevo.json app/index.jsx
 ```
 
 tarda entre una y dos horas y solo escribe si pasa las compuertas (dobles,

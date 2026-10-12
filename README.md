@@ -12,17 +12,19 @@ se verifican automáticamente y se revisan antes de entrar en el mapa.
 
 ## Cómo está hecho
 
-- `app/index.jsx` — la aplicación (React Native + Expo) y, dentro, el dato del
-  mapa: 1.200 entidades (estados y áreas culturales) con sus periodos y
-  contornos. Se construye, no se edita a mano.
-- `data/events_extended.json` — los eventos que ve la app. Se construye a
-  partir de dos capas: el **canon** (`data/canon/canon_*.js`, escrito y
-  verificado entrada por entrada) y el **fondo** (`data/fondo_wikidata.json`,
-  un volcado de Wikidata filtrado por `data/canon/fondo.js`).
+- `app/index.jsx` — la aplicación (React Native + Expo).
+- `data/mapa.json` — el dato del mapa: 1.200 entidades (estados y áreas
+  culturales) con sus periodos y contornos. Se construye, no se edita a mano.
+- `data/events_extended.json` — todos los eventos, construidos a partir de dos
+  capas: el **canon** (`data/canon/canon_*.js`, escrito y verificado entrada
+  por entrada) y el **fondo** (`data/fondo_wikidata.json`, un volcado de
+  Wikidata filtrado por `data/canon/fondo.js`). De ahí salen
+  `data/eventos_base.json` (lo que la app lleva de serie) y los paquetes por
+  era que se publican como release y la app descarga a elección de cada quien.
 - `data/canon/CANON.md` — los criterios: categorías, reglas de importancia,
   cuotas por era y región, esquema, procedencia.
 - `tools/` — las herramientas que construyen y verifican el mapa; `tools/README.md`
-  explica el flujo. `tools/construye.sh` reconstruye `app/index.jsx` desde la
+  explica el flujo. `tools/construye.sh` reconstruye `data/mapa.json` desde la
   base con compuertas de calidad: si algo falla, no sale.
 
 ## Cómo contribuir

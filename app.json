@@ -11,7 +11,8 @@
       "bundleIdentifier": "com.anonymous.BlueDot",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "appleTeamId": "ASMVPJDKVT"
     },
     "android": {
       "adaptiveIcon": {
@@ -30,7 +31,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "./plugins/withPodsTarget.js"
     ],
     "extra": {
       "eas": {

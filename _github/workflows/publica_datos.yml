@@ -1,0 +1,39 @@
+# Cuando un cambio en los eventos entra en main, los paquetes por era se
+# construyen y se publican como release de GitHub. La app los lee de
+# <repo>/releases/latest/download/manifiesto.json, asi que un teléfono ve los
+# datos nuevos sin reinstalar nada. Nadie sube archivos a mano.
+name: publica datos
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/canon/**'
+      - 'data/fondo_wikidata.json'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  paquetes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: dependencias de las herramientas
+        run: cd tools && npm install --no-audit --no-fund
+      - name: construir, verificar y empaquetar
+        run: |
+          cd data/canon
+          node construye_eventos.js ../fondo_wikidata.json ../events_extended.json
+          node verifica_eventos.js --json ../events_extended.json
+          node empaqueta.js ../events_extended.json ..
+      - name: publicar la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          FECHA=$(node -e "console.log(require('./data/eventos_version.json').fecha)")
+          TAG="datos-$FECHA"
+          gh release delete "$TAG" --yes --cleanup-tag || true
+          gh release create "$TAG" --title "Datos $FECHA" \
+            --notes "Paquetes de eventos por era para la app (fondo de importancia 1). El manifiesto dice qué trae cada uno. Datos CC BY-SA 4.0; fondo de Wikidata (CC0)." \
+            data/paquetes/*.json

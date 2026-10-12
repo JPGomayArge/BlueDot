@@ -1,8 +1,14 @@
-// Carga y guarda el bloque CIVILIZATIONS de app/index.jsx.
-// Los anillos se guardan una sola vez en el diccionario __RG y cada periodo
-// los referencia por indice en base 36; asi el archivo baja de 30 MB a 6.
-const fs=require('fs');
-const RUTA_POR_DEFECTO=process.env.BLUEDOT_JSX||require('path').join(__dirname,'..','app','index.jsx');
+// Carga y guarda el dato del mapa (diccionario de anillos __RG + CIVILIZATIONS).
+// Los anillos se guardan una sola vez en el diccionario y cada periodo los
+// referencia por indice en base 36. El dato puede vivir en dos sitios y lib.js
+// entiende los dos, asi que ninguna herramienta tiene que saber cual es:
+//   - data/mapa.json  { version, rings, civilizations }   (forma actual)
+//   - dentro de app/index.jsx como const __RG / const CIVILIZATIONS  (forma vieja)
+// Si se le da un .jsx que ya no lleva el dato (import MAPA from mapa.json), lo
+// busca en BLUEDOT_MAPA o en ../data/mapa.json respecto al .jsx.
+const fs=require('fs'); const path_=require('path');
+const RUTA_POR_DEFECTO=process.env.BLUEDOT_JSX||process.env.JSX||process.env.BLUEDOT_MAPA||path_.join(__dirname,'..','data','mapa.json');
+function rutaJson(p){ return process.env.BLUEDOT_MAPA||path_.join(path_.dirname(p),'..','data','mapa.json') }
 
 function decRing(t){const out=[];let px=0,py=0;const parts=t.split(';');
  for(let k=0;k<parts.length;k++){const q=parts[k];if(!q)continue;const c=q.indexOf(',');
@@ -15,7 +21,13 @@ function rawBlock(src){const m=src.indexOf('const CIVILIZATIONS');const s=src.in
 
 function load(path){
  const p=path||RUTA_POR_DEFECTO;
- const src=fs.readFileSync(p,'utf8');
+ let src=fs.readFileSync(p,'utf8');
+ // forma json: directa, o a traves de un .jsx que ya no lleva el dato
+ let json=null; if(/\.json$/i.test(p))json=p; else if(!src.includes('const CIVILIZATIONS = [')&&src.includes('MAPA.civilizations'))json=rutaJson(p);
+ if(json){ const M=JSON.parse(fs.readFileSync(json,'utf8')); const CIV=M.civilizations; const DIC=M.rings.map(decRing);
+  for(const cv of CIV)for(const pe of cv.periods){ if(typeof pe.rings!=='string')continue;
+   pe.rings=pe.rings.length?pe.rings.split(',').map(k=>DIC[parseInt(k,36)].map(q=>q.slice())):[] }
+  return {src:null,CIV,R:{json,version:M.version||null},ruta:json} }
  const R=rawBlock(src);const CIV=eval(R.txt);
  const g=src.indexOf('const __RG');let DIC=null;
  if(g>=0&&g<R.a){const a=src.indexOf('[',g);let d=0,i=a;
@@ -30,11 +42,20 @@ function load(path){
 }
 
 function save(src,R,CIV,path){
- const p=path||RUTA_POR_DEFECTO;
+ const p=path||(R&&R.json)||RUTA_POR_DEFECTO;
  const esc=s=>String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
  const idx=new Map(),dic=[];
  for(const c of CIV)for(const pe of c.periods)for(const r of pe.rings){
   const e=encRing(r); if(!idx.has(e)){idx.set(e,dic.length);dic.push(e)} }
+ // forma json: las entidades se escriben con los mismos campos y en el mismo
+ // orden que la forma vieja, para que el diff de git sea legible
+ if((R&&R.json)||/\.json$/i.test(p)){
+  const destino=/\.json$/i.test(p)?p:R.json;
+  const civs=CIV.map(c=>{ const o={id:c.id}; if(c.kind)o.kind=c.kind; o.name=c.name; o.color=c.color; if(c.etiqueta)o.etiqueta=c.etiqueta; if(c.wikiTitle)o.wikiTitle=c.wikiTitle;
+   o.periods=c.periods.map(pe=>{ const q={start:pe.start,end:pe.end,rings:pe.rings.map(r=>idx.get(encRing(r)).toString(36)).join(',')}; if(pe.wikiTitle)q.wikiTitle=pe.wikiTitle; if(pe.name)q.name=pe.name; if(pe.inc)q.inc=1; return q }); return o });
+  const M={version:(R&&R.version)||null,rings:dic,civilizations:civs};
+  fs.writeFileSync(destino,'{"version":'+JSON.stringify(M.version)+',\n"rings":[\n'+dic.map(e=>JSON.stringify(e)).join(',\n')+'\n],\n"civilizations":[\n'+civs.map(c=>JSON.stringify(c)).join(',\n')+'\n]}\n');
+  return src }
  const lines=CIV.map(c=>{const per=c.periods.map(pe=>{
    const ids=pe.rings.map(r=>idx.get(encRing(r)).toString(36)).join(',');
    const f=['start:'+pe.start,'end:'+pe.end,"rings:'"+ids+"'"];

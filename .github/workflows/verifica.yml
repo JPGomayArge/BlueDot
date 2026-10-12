@@ -22,6 +22,11 @@ jobs:
           cd data/canon
           node construye_eventos.js ../fondo_wikidata.json /tmp/events_extended.json
           node verifica_eventos.js --json /tmp/events_extended.json
+          node empaqueta.js /tmp/events_extended.json /tmp
+      - name: estructura del mapa
+        run: |
+          cd tools
+          node estructura.js ../data/mapa.json | tail -1
       - name: sintaxis de la app
         run: |
           cd tools
