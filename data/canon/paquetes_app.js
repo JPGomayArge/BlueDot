@@ -1,5 +1,10 @@
 #!/usr/bin/env node
-// PAQUETES DE EVENTOS POR ERA EN LA APP.
+// PAQUETES DE EVENTOS EN LA APP (parche inicial).
+//
+// NOTA: este fue el parche que introdujo los paquetes (por era). Despues el
+// codigo se siguio editando en index.jsx directamente (paquetes por siglo,
+// seccion plegable); la version vigente es la de index.jsx, no la de aqui.
+// Se conserva como registro de que anclas toco y por que.
 //
 // La app lleva de serie eventos_base.json (canon + fondo de importancia 2) y
 // descarga, a eleccion de la persona, el fondo detallado de cada era desde la

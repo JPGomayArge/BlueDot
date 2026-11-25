@@ -20,7 +20,7 @@ se verifican automáticamente y se revisan antes de entrar en el mapa.
   por entrada) y el **fondo** (`data/fondo_wikidata.json`, un volcado de
   Wikidata filtrado por `data/canon/fondo.js`). De ahí salen
   `data/eventos_base.json` (lo que la app lleva de serie) y los paquetes por
-  era que se publican como release y la app descarga a elección de cada quien.
+  siglo que se publican como release y la app descarga a elección de cada quien.
 - `data/canon/CANON.md` — los criterios: categorías, reglas de importancia,
   cuotas por era y región, esquema, procedencia.
 - `tools/` — las herramientas que construyen y verifican el mapa; `tools/README.md`

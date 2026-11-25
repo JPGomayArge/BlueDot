@@ -932,23 +932,36 @@ const EVENTS_BASE = EVENTS_RAW.map(e => e.wikiTitles ? e : { ...e, wikiTitles: e
 // descargadas que toca la ventana de tiempo. Lo recompone Paquetes.
 let EVENTS = EVENTS_BASE;
 
-// ─── Paquetes de eventos por era ─────────────────────────────────────────────
+// ─── Paquetes de eventos por siglo ───────────────────────────────────────────
 // El fondo detallado (importancia 1) no va dentro de la app: se descarga por
-// era desde la release del repositorio, a eleccion de la persona, y se guarda
-// en la carpeta de documentos de la app. Asi cada quien decide cuanto detalle
-// carga y cuanto espacio ocupa, y los datos se renuevan sin reinstalar.
+// paquete desde la release del repositorio, a eleccion de la persona, y se
+// guarda en la carpeta de documentos de la app. Un paquete por siglo desde el
+// año 1000 y cuatro tramos anchos antes (el fondo anterior es escaso). Asi cada
+// quien decide cuanto detalle carga y cuanto espacio ocupa, y los datos se
+// renuevan sin reinstalar.
 const PAQUETES_URL = 'https://github.com/JPGomayArge/BlueDot/releases/latest/download/';
-const ERAS = [
-  { id:'era_00', nombre:'10000 a 3000 a.C.',    desde:-10000, hasta:-3000 },
-  { id:'era_01', nombre:'3000 a 1000 a.C.',     desde:-3000,  hasta:-1000 },
-  { id:'era_02', nombre:'1000 a.C. a 500 d.C.', desde:-1000,  hasta:500 },
-  { id:'era_03', nombre:'500 a 1000',           desde:500,    hasta:1000 },
-  { id:'era_04', nombre:'1000 a 1500',          desde:1000,   hasta:1500 },
-  { id:'era_05', nombre:'1500 a 1700',          desde:1500,   hasta:1700 },
-  { id:'era_06', nombre:'1700 a 1800',          desde:1700,   hasta:1800 },
-  { id:'era_07', nombre:'1800 a 1900',          desde:1800,   hasta:1900 },
-  { id:'era_08', nombre:'1900 a 1950',          desde:1900,   hasta:1950 },
-  { id:'era_09', nombre:'Desde 1950',           desde:1950,   hasta:2100 },
+const PAQUETES = [
+  { id:'antes_m3000', nombre:'Hasta 3000 a.C.', desde:-10000, hasta:-3000, grupo:'antes' },
+  { id:'antes_m1000', nombre:'3000 a 1000 a.C.', desde:-3000, hasta:-1000, grupo:'antes' },
+  { id:'antes_0500', nombre:'1000 a.C. a 500 d.C.', desde:-1000, hasta:500, grupo:'antes' },
+  { id:'antes_1000', nombre:'500 a 1000', desde:500, hasta:1000, grupo:'antes' },
+  { id:'siglo_11', nombre:'Siglo XI (1000–1100)', desde:1000, hasta:1100, grupo:'medieval' },
+  { id:'siglo_12', nombre:'Siglo XII (1100–1200)', desde:1100, hasta:1200, grupo:'medieval' },
+  { id:'siglo_13', nombre:'Siglo XIII (1200–1300)', desde:1200, hasta:1300, grupo:'medieval' },
+  { id:'siglo_14', nombre:'Siglo XIV (1300–1400)', desde:1300, hasta:1400, grupo:'medieval' },
+  { id:'siglo_15', nombre:'Siglo XV (1400–1500)', desde:1400, hasta:1500, grupo:'medieval' },
+  { id:'siglo_16', nombre:'Siglo XVI (1500–1600)', desde:1500, hasta:1600, grupo:'moderna' },
+  { id:'siglo_17', nombre:'Siglo XVII (1600–1700)', desde:1600, hasta:1700, grupo:'moderna' },
+  { id:'siglo_18', nombre:'Siglo XVIII (1700–1800)', desde:1700, hasta:1800, grupo:'moderna' },
+  { id:'siglo_19', nombre:'Siglo XIX (1800–1900)', desde:1800, hasta:1900, grupo:'moderna' },
+  { id:'siglo_20', nombre:'Siglo XX (1900–2000)', desde:1900, hasta:2000, grupo:'actual' },
+  { id:'siglo_21', nombre:'Siglo XXI (desde 2000)', desde:2000, hasta:2100, grupo:'actual' },
+];
+const GRUPOS_PAQUETES = [
+  { id:'antes', nombre:'Antes del año 1000' },
+  { id:'medieval', nombre:'Siglos XI a XV' },
+  { id:'moderna', nombre:'Siglos XVI a XIX' },
+  { id:'actual', nombre:'Siglos XX y XXI' },
 ];
 const Paquetes = {
   dir: null, manifiesto: null, error: null, listo: false,
@@ -974,8 +987,13 @@ const Paquetes = {
       if (f.exists) this.instalados = JSON.parse(await f.text()) || {};
     } catch (e) { this.instalados = {}; }
     for (const id of Object.keys(this.instalados)) {
-      try { if (!this.archivo(id).exists) delete this.instalados[id]; } catch (e) { delete this.instalados[id]; }
+      const conocido = PAQUETES.some(r => r.id === id);
+      try {
+        if (!conocido) { const f = this.archivo(id); if (f.exists) f.delete(); delete this.instalados[id]; }   // esquema anterior
+        else if (!this.archivo(id).exists) delete this.instalados[id];
+      } catch (e) { delete this.instalados[id]; }
     }
+    this.guardarInstalados();
     this.listo = true;
     this.asegurar(this.ultimoAnio, this.ultimaTol);
     this.avisar();
@@ -993,15 +1011,15 @@ const Paquetes = {
       const r = await fetch(PAQUETES_URL + 'manifiesto.json', { cache:'no-store' });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const m = await r.json();
-      if (!m || !Array.isArray(m.eras)) throw new Error('manifiesto inválido');
+      if (!m || !Array.isArray(m.paquetes)) throw new Error('manifiesto inválido');
       this.manifiesto = m; this.error = null;
     } catch (e) { this.error = 'sin conexión'; }
     this.avisar();
     return this.manifiesto;
   },
-  eraDe(anio) { return ERAS.find(r => anio >= r.desde && anio < r.hasta) || ERAS[ERAS.length - 1]; },
+  paqueteDe(anio) { return PAQUETES.find(r => anio >= r.desde && anio < r.hasta) || PAQUETES[PAQUETES.length - 1]; },
   hayNuevo(id) {
-    const i = this.instalados[id]; const m = this.manifiesto && this.manifiesto.eras.find(x => x.id === id);
+    const i = this.instalados[id]; const m = this.manifiesto && this.manifiesto.paquetes.find(x => x.id === id);
     return !!(i && m && m.fecha && i.fecha && m.fecha > i.fecha);
   },
   espacio() { return Object.values(this.instalados).reduce((s, x) => s + (x.bytes || 0), 0); },
@@ -1009,7 +1027,7 @@ const Paquetes = {
     if (this.estado[id] === 'descargando') return;
     this.estado[id] = 'descargando'; this.avisar();
     try {
-      const m = this.manifiesto && this.manifiesto.eras.find(x => x.id === id);
+      const m = this.manifiesto && this.manifiesto.paquetes.find(x => x.id === id);
       const r = await fetch(PAQUETES_URL + ((m && m.archivo) || (id + '.json')), { cache:'no-store' });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const txt = await r.text();
@@ -1043,8 +1061,8 @@ const Paquetes = {
         id: r[0], year: r[1], lat: r[2], lon: r[3],
         labels: { es, en }, category: r[6], importance: 1, reg: r[7] || undefined,
         wikiTitles: { es: r[9] || es, en: r[10] || en },
-        wikidataId: r[8] || undefined, aprox: r[11] ? 1 : undefined,
-        fondo: 1, fuente: r[8] ? 'wikidata:' + r[8] : 'wikidata',
+        wikidataId: r[8] || undefined, aprox: r[11] || undefined, fin: r[12] || undefined,
+        fondo: 1, fuente: r[8] ? 'wikidata:Q' + String(r[8]).replace(/^Q/, '') : 'wikidata',
         alta: obj.fecha || null, autor: 'wikidata', revisado: null,
       });
     }
@@ -1068,7 +1086,7 @@ const Paquetes = {
   asegurar(anio, tol) {
     this.ultimoAnio = anio; this.ultimaTol = tol || 0;
     if (!this.listo) return;
-    const necesarias = ERAS.filter(r => anio + this.ultimaTol >= r.desde && anio - this.ultimaTol < r.hasta).map(r => r.id);
+    const necesarias = PAQUETES.filter(r => anio + this.ultimaTol >= r.desde && anio - this.ultimaTol < r.hasta).map(r => r.id);
     let cambio = false;
     for (const id of Array.from(this.cargadas.keys())) if (!necesarias.includes(id)) { this.cargadas.delete(id); cambio = true; }
     if (cambio) this.recomponer();
@@ -1080,7 +1098,7 @@ const Paquetes = {
     }
   },
 };
-function fmtBytes(b) { return b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toFixed(1).replace('.', ',') + ' MB'; }
+function fmtBytes(b) { if (!b) return '0 KB'; return b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toFixed(1).replace('.', ',') + ' MB'; }
 import {
   Info, Gear, MagnifyingGlass, List,
   User, Buildings, Sword, Flask, MaskHappy,
@@ -2501,7 +2519,9 @@ const makeEventsJSON = (year, activeCategories, toleranceBase, colorPalette) => 
   const visible = EVENTS.filter((e) => {
     if (!activeCategories.includes(e.category)) return false;
     if ((e.importance || 3) < minImp) return false;
-    return Math.abs(e.year - year) <= toleranceBase;
+    // Un suceso con duración (e.fin: una guerra, una pandemia) está "ocurriendo"
+    // todos los años entre su inicio y su final, no solo el del inicio.
+    return year >= e.year - toleranceBase && year <= (e.fin || e.year) + toleranceBase;
   });
 
   // Si hay más del cap, priorizar por importancia
@@ -3490,6 +3510,9 @@ function construirCivil(civ,ringsList){
   var cult = !!civ.cult;
   var colF = inc ? {r:col.r*0.74+0.05, g:col.g*0.74+0.05, b:col.b*0.74+0.06} : col;
   if(cult) colF = {r:colF.r*0.72, g:colF.g*0.72, b:colF.b*0.72};
+  // Lo que no esta en el canon de civilizaciones (sin biografia revisada) se
+  // pinta algo mas apagado: la ficha dice por que.
+  if(!civ.canon && !cult) colF = {r:colF.r*0.80+0.02, g:colF.g*0.80+0.02, b:colF.b*0.80+0.02};
   var fp=[],fc=[],lp=[],lc=[],pp=[],pc=[],lq=[],lqc=[],etiqueta=null;
   for(var ri=0;ri<ringsList.length;ri++){
     var crudo=ringsList[ri];
@@ -5598,7 +5621,8 @@ function EventCard({ event, onClose, activeCategories, onAskAI }) {
     ]).start(onClose);
   };
 
-  const evYearStr = event.year < 0 ? `${Math.abs(event.year)} a.C.` : `${event.year} d.C.`;
+  const anioTxt = (y) => y < 0 ? `${Math.abs(y)} a.C.` : `${y} d.C.`;
+  const evYearStr = event.fin && event.fin !== event.year ? anioTxt(event.year) + ' – ' + anioTxt(event.fin) : anioTxt(event.year);
   const catMeta = CATEGORY_META[event.category] || { label:'', emoji:'', color };
   const evLabelEs = event.labels?.es || event.label;
   // Some Spanish event names are proper nouns that read like ordinary
@@ -5730,6 +5754,11 @@ function EventCard({ event, onClose, activeCategories, onAskAI }) {
 
           {/* ── Procedencia y corrección ────────────────────────────── */}
           <ProcedenciaLinea fuente={event.fuente} alta={event.alta} revisado={event.revisado} />
+          {event.aprox ? (
+            <Text style={{ color:'rgba(255,255,255,0.45)', fontSize:11, lineHeight:16 }}>
+              {event.aprox === 2 ? 'Ubicación aproximada: solo se conoce el país; el pin está en su capital.' : 'Ubicación aproximada: la del lugar o la región donde ocurrió, no un punto exacto.'}
+            </Text>
+          ) : null}
           <BotonCorreccion color={color} tipo="evento" id={event.id} titulo={evLabelEs} contexto={evYearStr + (event.lugar ? ' · ' + event.lugar : '') + ' · ' + (event.category || '')} />
 
           {/* ── Wikipedia link ──────────────────────────────────────── */}
@@ -6325,6 +6354,13 @@ function CivilizationInfoCard({ civilization, onClose, onAskAI }) {
           </View>
         )}
         <ScrollView style={cardStyles.body} showsVerticalScrollIndicator={false} bounces={false}>
+          {civilization.resumen ? (
+            <View style={{ marginBottom:12 }}>
+              <Text style={cardStyles.summaryTxt}>{civilization.resumen}</Text>
+              {civilization.capital ? <Text style={[cardStyles.contextText, { marginTop:6 }]}>{'Capital: ' + civilization.capital}</Text> : null}
+              {civilization.dudas ? <Text style={[cardStyles.contextText, { marginTop:4 }]}>{'Lo que no está claro: ' + civilization.dudas}</Text> : null}
+            </View>
+          ) : null}
           {loading ? (
             <View style={cardStyles.loadingRow}>
               <ActivityIndicator size="small" color={color} />
@@ -6344,7 +6380,10 @@ function CivilizationInfoCard({ civilization, onClose, onAskAI }) {
               <Text style={cardStyles.wikiBtnArrow}>{'\u2197'}</Text>
             </TouchableOpacity>
           )}
-          <ProcedenciaLinea fuente={civilization.periodWikiTitle ? 'wikipedia:' + civilization.periodWikiTitle : (civilization.wikiTitle ? 'wikipedia:' + civilization.wikiTitle : null)} alta={null} revisado={null} />
+          <ProcedenciaLinea fuente={civilization.fuente || (civilization.periodWikiTitle ? 'wikipedia:' + civilization.periodWikiTitle : (civilization.wikiTitle ? 'wikipedia:' + civilization.wikiTitle : null))} alta={null} revisado={civilization.revisado || null} />
+          {!civilization.canon ? (
+            <Text style={{ color:'rgba(255,255,255,0.45)', fontSize:11, lineHeight:16 }}>{'Pendiente de revisión: nombre, fechas y contorno heredados de las fuentes de partida; puede haber errores. Las civilizaciones revisadas llevan resumen propio y fuente.'}</Text>
+          ) : null}
           <Text style={{ color:'rgba(255,255,255,0.45)', fontSize:11, lineHeight:16 }}>{'Fronteras: tablas de BlueDot (tools/), ' + DATOS_VERSION.civilizaciones + (civilization.inc ? ' · contorno inferido' : '')}</Text>
           <BotonCorreccion color={color} tipo="civilizacion" id={civilization.id + (civilization.periodStart != null ? '@' + civilization.periodStart : '')} titulo={civilization.baseName || civilization.name} contexto={periodStr || ''} />
           <View style={{ height:8 }} />
@@ -7416,7 +7455,7 @@ function UnifiedDrawer({
 
           <View style={drawerSt.divider} />
 
-          {/* ── DETALLE POR ERA (paquetes descargables) ── */}
+          {/* ── DETALLE POR SIGLO (paquetes descargables) ── */}
           <SeccionPaquetes anio={anioActual} fontSize={fontSize} />
 
           <View style={drawerSt.divider} />
@@ -7436,18 +7475,18 @@ function UnifiedDrawer({
                   onToggle={onProcessToggle}
                   onItemToggle={onProcessItemToggle}
                 />
-                {pid === 'civilizations' && (
+                {pid === 'civilizations' && processLayers.civilizations && (
                   <Pressable
-                    style={{ flexDirection:'row', alignItems:'center', gap:8, paddingVertical:8, paddingHorizontal:12, marginTop:-4, marginBottom:6 }}
+                    style={{ flexDirection:'row', alignItems:'center', gap:8, paddingVertical:8, paddingHorizontal:12, marginTop:-4, marginBottom:6, marginLeft:16 }}
                     onPress={onToggleCivilNames}>
                     <TextT size={13} color={showCivilNames ? meta.color : 'rgba(255,255,255,0.35)'} weight="regular" />
                     <Text style={{ flex:1, color: showCivilNames ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.35)', fontSize:12 }}>Mostrar nombres de civilizaciones</Text>
                     <Toggle on={!!showCivilNames} color={meta.color} />
                   </Pressable>
                 )}
-                {pid === 'civilizations' && (
+                {pid === 'civilizations' && processLayers.civilizations && (
                   <Pressable
-                    style={{ flexDirection:'row', alignItems:'center', gap:8, paddingVertical:8, paddingHorizontal:12, marginTop:-6, marginBottom:6 }}
+                    style={{ flexDirection:'row', alignItems:'center', gap:8, paddingVertical:8, paddingHorizontal:12, marginTop:-6, marginBottom:6, marginLeft:16 }}
                     onPress={onToggleCultures}>
                     <UsersThree size={13} color={showCultures !== false ? meta.color : 'rgba(255,255,255,0.35)'} weight="regular" />
                     <View style={{ flex:1 }}>
@@ -7572,68 +7611,100 @@ function UnifiedDrawer({
 
 // ─── HamburgerIcon ────────────────────────────────────────────────────────────
 // ─── SeccionPaquetes ─────────────────────────────────────────────────────────
-// Una fila por era: nombre, eventos y peso, y el estado del paquete. La era
-// del año actual va marcada. Sin red se enseña lo instalado y se dice.
-function FilaEra({ era, m, inst, est, actual, nuevo, fontSize }) {
+// Plegada enseña un resumen (instalados, espacio); abierta, los paquetes por
+// grupo, cada grupo plegable, con el del año actual abierto y su fila marcada.
+// Sin red se enseña lo instalado y se dice.
+function FilaPaquete({ paq, m, inst, est, actual, nuevo, fontSize }) {
   const info = m ? (m.eventos + ' eventos · ' + fmtBytes(m.bytes)) : inst ? (inst.eventos + ' eventos · ' + fmtBytes(inst.bytes)) : 'sin información';
   const color = actual ? '#fff' : 'rgba(255,255,255,0.55)';
   let derecha;
   if (est === 'descargando') derecha = <ActivityIndicator size="small" color="#378ADD" />;
   else if (est === 'error') derecha = (
-    <TouchableOpacity onPress={() => Paquetes.descargar(era.id)} style={paqSt.btn}><Text style={paqSt.btnTxtErr}>Reintentar</Text></TouchableOpacity>);
+    <TouchableOpacity onPress={() => Paquetes.descargar(paq.id)} style={paqSt.btn}><Text style={paqSt.btnTxtErr}>Reintentar</Text></TouchableOpacity>);
   else if (inst && nuevo) derecha = (
-    <TouchableOpacity onPress={() => Paquetes.descargar(era.id)} style={paqSt.btn}><ArrowsClockwise size={14} color="#378ADD" /><Text style={paqSt.btnTxt}>Actualizar</Text></TouchableOpacity>);
+    <TouchableOpacity onPress={() => Paquetes.descargar(paq.id)} style={paqSt.btn}><ArrowsClockwise size={14} color="#378ADD" /><Text style={paqSt.btnTxt}>Actualizar</Text></TouchableOpacity>);
   else if (inst) derecha = (
     <View style={{ flexDirection:'row', alignItems:'center', gap:10 }}>
       <CheckCircle size={16} color="#5BBF7A" weight="fill" />
-      <TouchableOpacity onPress={() => Paquetes.quitar(era.id)} hitSlop={8}><Trash size={15} color="rgba(255,255,255,0.35)" /></TouchableOpacity>
+      <TouchableOpacity onPress={() => Paquetes.quitar(paq.id)} hitSlop={8}><Trash size={15} color="rgba(255,255,255,0.35)" /></TouchableOpacity>
     </View>);
   else if (m) derecha = (
-    <TouchableOpacity onPress={() => Paquetes.descargar(era.id)} style={paqSt.btn}><DownloadSimple size={14} color="#378ADD" /><Text style={paqSt.btnTxt}>Descargar</Text></TouchableOpacity>);
+    <TouchableOpacity onPress={() => Paquetes.descargar(paq.id)} style={paqSt.btn}><DownloadSimple size={14} color="#378ADD" /><Text style={paqSt.btnTxt}>Descargar</Text></TouchableOpacity>);
   else derecha = <Text style={paqSt.sinRed}>—</Text>;
   return (
-    <View style={[drawerSt.row, actual && { borderColor:'rgba(55,138,221,0.45)', backgroundColor:'rgba(55,138,221,0.08)' }]}>
+    <View style={[drawerSt.row, { paddingVertical:8 }, actual && { borderColor:'rgba(55,138,221,0.45)', backgroundColor:'rgba(55,138,221,0.08)' }]}>
       <View style={{ flex:1 }}>
-        <Text style={[drawerSt.rowLabel, { color, fontSize }]}>{era.nombre}</Text>
+        <Text style={[drawerSt.rowLabel, { color, fontSize:fontSize - 1 }]}>{paq.nombre}</Text>
         <Text style={paqSt.info}>{info + (inst && inst.fecha ? ' · ' + inst.fecha : '')}</Text>
       </View>
       {derecha}
     </View>
   );
 }
+function GrupoPaquetes({ grupo, filas, actual, abierto, onAbrir, fontSize }) {
+  const inst = filas.filter(f => f.inst).length;
+  const bytes = filas.reduce((s, f) => s + ((f.m && f.m.bytes) || (f.inst && f.inst.bytes) || 0), 0);
+  const contiene = filas.some(f => f.paq.id === actual);
+  return (
+    <View style={{ marginBottom:4 }}>
+      <Pressable onPress={onAbrir} style={{ flexDirection:'row', alignItems:'center', paddingVertical:8, paddingHorizontal:4 }}>
+        <Text style={{ flex:1, color: contiene ? '#fff' : 'rgba(255,255,255,0.7)', fontSize:13, fontWeight:'600' }}>{grupo.nombre}</Text>
+        <Text style={paqSt.info}>{inst + ' de ' + filas.length + ' · ' + fmtBytes(bytes)}</Text>
+        <Text style={[drawerSt.chevron, { marginLeft:8, transform:[{ rotate: abierto ? '90deg' : '0deg' }] }]}>›</Text>
+      </Pressable>
+      {abierto && filas.map(f => <FilaPaquete key={f.paq.id} {...f} actual={f.paq.id === actual} fontSize={fontSize} />)}
+    </View>
+  );
+}
 function SeccionPaquetes({ anio, fontSize }) {
   const [, tick] = useState(0);
+  const [abierta, setAbierta] = useState(false);
+  const [grupoAbierto, setGrupoAbierto] = useState(null);
   useEffect(() => {
     const off = Paquetes.suscribir(() => tick(t => t + 1));
     Paquetes.pedirManifiesto();
     return off;
   }, []);
   const man = Paquetes.manifiesto;
-  const actual = Paquetes.eraDe(anio == null ? 2000 : anio).id;
-  const filas = ERAS.map(era => ({ era, m: man && man.eras.find(x => x.id === era.id), inst: Paquetes.instalados[era.id], est: Paquetes.estado[era.id], nuevo: Paquetes.hayNuevo(era.id) }));
+  const actualPaq = Paquetes.paqueteDe(anio == null ? 2000 : anio);
+  const actual = actualPaq.id;
+  const filas = PAQUETES.map(paq => ({ paq, m: man && man.paquetes.find(x => x.id === paq.id), inst: Paquetes.instalados[paq.id], est: Paquetes.estado[paq.id], nuevo: Paquetes.hayNuevo(paq.id) }));
   const faltan = filas.filter(f => f.m && (!f.inst || f.nuevo));
   const bytesFaltan = faltan.reduce((s, f) => s + (f.m.bytes || 0), 0);
   const nDesc = filas.filter(f => f.est === 'descargando').length;
+  const nInst = filas.filter(f => f.inst).length;
+  const grupoActivo = grupoAbierto || actualPaq.grupo;
+  const resumen = nInst + ' de ' + PAQUETES.length + ' instalados · ' + fmtBytes(Paquetes.espacio())
+    + (man && man.fecha ? ' · datos del ' + man.fecha : '') + (!man && Paquetes.error ? ' · sin conexión' : '');
   return (
     <View>
-      <Text style={[drawerSt.sectionLabel, { marginTop:20 }]}>Detalle por era</Text>
-      <Text style={drawerSt.sectionSub}>
-        {'La app trae de serie el canon y lo más notable del fondo. Cada era puede descargar su fondo detallado; tú eliges cuánto cargar.'
-          + (man && man.fecha ? ' Datos del ' + man.fecha + '.' : '')
-          + (!man && Paquetes.error ? ' Sin conexión: se muestra lo instalado.' : '')}
-      </Text>
-      <View style={drawerSt.section}>
-        {filas.map(f => <FilaEra key={f.era.id} {...f} actual={f.era.id === actual} fontSize={fontSize} />)}
-        <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:4, marginTop:4 }}>
-          <Text style={paqSt.info}>{'Espacio usado: ' + fmtBytes(Paquetes.espacio())}</Text>
-          {faltan.length > 0 && nDesc === 0 && (
-            <TouchableOpacity onPress={() => faltan.forEach(f => Paquetes.descargar(f.era.id))} style={paqSt.btn}>
-              <DownloadSimple size={14} color="#378ADD" />
-              <Text style={paqSt.btnTxt}>{'Instalar todo · ' + fmtBytes(bytesFaltan)}</Text>
-            </TouchableOpacity>
-          )}
+      <Pressable onPress={() => setAbierta(a => !a)} style={drawerSt.sectionHeaderRow}>
+        <View style={{ flex:1 }}>
+          <Text style={[drawerSt.sectionLabel, { paddingHorizontal:0, marginTop:0, marginBottom:2 }]}>Detalle por siglo</Text>
+          <Text style={[drawerSt.sectionSub, { paddingHorizontal:0, marginBottom:0 }]}>{resumen}</Text>
         </View>
-      </View>
+        <Text style={[drawerSt.chevron, { transform:[{ rotate: abierta ? '90deg' : '0deg' }] }]}>›</Text>
+      </Pressable>
+      {abierta && (
+        <View style={[drawerSt.section, { marginTop:8 }]}>
+          <Text style={[paqSt.info, { marginBottom:8 }]}>
+            {'La app trae de serie el canon y lo más notable del fondo. Cada paquete añade el fondo detallado de su siglo; tú eliges cuánto cargar.'}
+          </Text>
+          {GRUPOS_PAQUETES.map(g => (
+            <GrupoPaquetes key={g.id} grupo={g} filas={filas.filter(f => f.paq.grupo === g.id)} actual={actual}
+              abierto={grupoActivo === g.id} onAbrir={() => setGrupoAbierto(grupoActivo === g.id ? '-' : g.id)} fontSize={fontSize} />
+          ))}
+          <View style={{ flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:4, marginTop:6 }}>
+            <Text style={paqSt.info}>{'Espacio usado: ' + fmtBytes(Paquetes.espacio())}</Text>
+            {faltan.length > 0 && nDesc === 0 && (
+              <TouchableOpacity onPress={() => faltan.forEach(f => Paquetes.descargar(f.paq.id))} style={paqSt.btn}>
+                <DownloadSimple size={14} color="#378ADD" />
+                <Text style={paqSt.btnTxt}>{'Instalar todo · ' + fmtBytes(bytesFaltan)}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -8455,7 +8526,7 @@ export default function BlueDotApp() {
         // nombre se volvio descripcion. Esas llevan ahora un campo etiqueta con
         // el rotulo corto. La ficha y la leyenda siguen usando el nombre largo,
         // que es donde hay sitio para leerlo.
-        const base = { id:c.id, k, color:c.color, opacity:c.opacity, inc:c.inc, cult:c.kind==='cultura'?1:0, name:c.etiqueta || c.baseName };
+        const base = { id:c.id, k, color:c.color, opacity:c.opacity, inc:c.inc, cult:c.kind==='cultura'?1:0, canon:c.canon?1:0, name:c.etiqueta || c.baseName };
         // Las coordenadas solo viajan la primera vez que se ve el territorio;
         // despues basta la clave, porque el motor ya tiene la malla montada.
         return (force || !enviadasRef.current.has(k)) ? { ...base, rings:c.rings } : base;

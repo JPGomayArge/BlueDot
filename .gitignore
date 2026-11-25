@@ -10,6 +10,10 @@ android/
 # paquetes de eventos: los publica la acción de GitHub como release
 data/paquetes/
 
+# caché del extractor de Wikidata (miles de archivos; se regenera)
+data/_wikidata_cache/
+data/fondo_wikidata_prueba.json
+
 # intermedios de la construcción del mapa
 _construye/
 *.trabajo.jsx

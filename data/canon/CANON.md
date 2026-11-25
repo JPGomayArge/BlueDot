@@ -81,6 +81,8 @@ menos 6 eventos (Oceanía y las Américas antes del -3000, al menos 2).
 Un suceso difuso (una pandemia, un invento sin lugar único) va donde empezó o
 donde está mejor documentado. `wiki` es el título exacto en es.wikipedia;
 `wiki_en` el de en.wikipedia (la app usa ambos y, si fallan, busca por texto).
+`fin` opcional: el año en que termina un suceso con duración (una guerra, una
+pandemia); el pin se ve todos los años del tramo y la ficha dice "1618 – 1648".
 `nota` opcional: una línea de contexto para la ficha. `mar:true` cuando el suceso
 ocurre en el mar o en un islote que la máscara de tierra no ve (Midway, Krakatoa).
 
@@ -125,5 +127,5 @@ fondo nunca sube de 2.
 Título en español, corto, que diga qué pasó ("Apolo 11: los primeros humanos en
 la Luna", no "Apolo 11"). Sin juicio de valor en el título. Nombres de lugar en
 la forma española habitual. Años antes de Cristo en negativo; un suceso que
-dura varios años se ancla en el año en que empieza (la Peste negra en 1347) y
-se dice en la nota. Nada de "Anexo:", nada de listas.
+dura varios años se ancla en el año en que empieza (la Peste negra en 1347),
+lleva `fin` si se sabe cuándo acaba, y se dice en la nota. Nada de "Anexo:", nada de listas.

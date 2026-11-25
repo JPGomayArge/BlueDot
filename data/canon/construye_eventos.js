@@ -8,10 +8,10 @@
 //     wikidataId?, reg, nota?, persona?, momento?, otro? }
 // Una persona del canon da dos eventos (nacimiento y muerte) enlazados.
 //
-//   node construye_eventos.js <events_extended.json viejo> <salida.json> [--sin-fondo]
+//   node construye_eventos.js <fondo.json[,fondo2.json]> <salida.json> [--sin-fondo]
 const fs=require('fs'), path=require('path');
 const viejo=process.argv[2], salida=process.argv[3]; const SINFONDO=process.argv.includes('--sin-fondo');
-if(!viejo||!salida){ console.log('uso: node construye_eventos.js <viejo.json> <salida.json> [--sin-fondo]'); process.exit(1) }
+if(!viejo||!salida){ console.log('uso: node construye_eventos.js <fondo.json[,fondo2.json]> <salida.json> [--sin-fondo]'); process.exit(1) }
 const CATS=['politica','guerras','ciencia','exploracion','religion','cultura','economia','sociedad','desastres','personas'];
 const REGS=['europa','mena','africa','asia_oriental','asia_sur','asia_central','norteamerica','latam','oceania'];
 
@@ -45,6 +45,7 @@ for(const e of canon){
   if(typeof e.y!=='number')err.push(e.id+': sin anio');
   const o={id:e.id,year:e.y,lat:e.lat,lon:e.lon,labels:{es:e.es,en:e.en||e.es},category:e.cat,importance:e.imp,wikiTitles:{es:e.wiki||e.es,en:e.wiki_en||e.en||e.es},reg:e.reg,fuente:e.fuente,alta:e.alta,autor:e.autor,revisado:e.revisado};
   if(e.mar)o.mar=1; if(e.nota)o.nota=e.nota; if(e.wikidataId)o.wikidataId=e.wikidataId;
+  if(typeof e.fin==='number'&&e.fin>e.y)o.fin=e.fin;   // año en que termina (guerra, pandemia): el pin dura todo el tramo
   pon(o);
  }
 }
@@ -53,17 +54,23 @@ console.log('canon: '+canon.length+' entradas en '+archivos.length+' archivos ->
 // --- el fondo ----------------------------------------------------------------------
 let nFondo=0, nDup=0;
 if(!SINFONDO){
- const F=require('./fondo.js'); const V=JSON.parse(fs.readFileSync(viejo,'utf8'));
+ const F=require('./fondo.js');
+ // varios volcados separados por coma (el viejo, con coordenadas, y el nuevo de fondo_wikidata.js):
+ // el mismo suceso en los dos se queda con la version del ultimo archivo que lo trae
+ const porQ=new Map(); const V=[];
+ for(const ruta of viejo.split(',')){ for(const v of JSON.parse(fs.readFileSync(ruta.trim(),'utf8'))){ if(v.wikidataId){ const q=String(v.wikidataId).replace(/^Q/,''); if(porQ.has(q)){ V[porQ.get(q)]=v; continue } porQ.set(q,V.length) } V.push(v) } }
  // indice del canon por anio+titulo normalizado, para no duplicar
  const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\b(de|del|la|el|los|las|en|y|the|of|a)\b/g,' ').replace(/\s+/g,' ').trim();
- const claves=new Set(); for(const o of out){ claves.add(o.year+'|'+norm(o.labels.es).slice(0,20)); if(o.wikidataId)claves.add('Q'+o.wikidataId) }
+ const claves=new Set(); for(const o of out){ claves.add(o.year+'|'+norm(o.labels.es).slice(0,20)); if(o.wikidataId)claves.add('Q'+String(o.wikidataId).replace(/^Q/,'')) }
  const palabrasCanon=new Map(); for(const o of out){ const k=norm(o.labels.es).split(' ').filter(w=>w.length>4).slice(0,3).join(' '); if(k)palabrasCanon.set(o.year+'|'+k,o.id) }
  for(const v of V){ const r=F.filtra(v); if(!r)continue;
-  if(v.wikidataId&&claves.has('Q'+v.wikidataId)){nDup++;continue}
+  if(v.wikidataId&&claves.has('Q'+String(v.wikidataId).replace(/^Q/,''))){nDup++;continue}
   if(claves.has(v.year+'|'+norm(v.labels.es).slice(0,20))){nDup++;continue}
   const k=norm(v.labels.es).split(' ').filter(w=>w.length>4).slice(0,3).join(' '); if(k&&palabrasCanon.has(v.year+'|'+k)){nDup++;continue}
-  const o={id:v.id,year:v.year,lat:v.lat,lon:v.lon,labels:v.labels,category:r.cat,importance:r.imp,wikiTitles:v.wikiTitles||v.labels,reg:F.region(v.lat,v.lon),fondo:1,fuente:v.wikidataId?'wikidata:'+v.wikidataId:'wikidata',alta:'2026-10-11',autor:'wikidata',revisado:null};
-  if(v.wikidataId)o.wikidataId=v.wikidataId;
+  const o={id:v.id,year:v.year,lat:v.lat,lon:v.lon,labels:v.labels,category:r.cat,importance:r.imp,wikiTitles:v.wikiTitles||v.labels,reg:F.region(v.lat,v.lon),fondo:1,fuente:v.wikidataId?'wikidata:Q'+String(v.wikidataId).replace(/^Q/,''):'wikidata',alta:'2026-10-11',autor:'wikidata',revisado:null};
+  if(v.wikidataId)o.wikidataId=String(v.wikidataId).replace(/^Q/,'');   // sin la Q, como el volcado viejo
+  if(v.aprox)o.aprox=v.aprox;
+  if(typeof v.fin==='number'&&v.fin>v.year)o.fin=v.fin;   // ubicacion derivada del lugar (1) o del pais (2): la ficha lo dice
   if(ids.has(o.id)){nDup++;continue}
   pon(o); nFondo++ }
  console.log('fondo: '+nFondo+' conservados de '+V.length+' ('+nDup+' duplicaban el canon)');

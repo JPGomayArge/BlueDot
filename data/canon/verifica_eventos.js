@@ -24,7 +24,7 @@ const enTierra=(lat,lon)=>{ if(!T)return true; for(const [dx,dy] of [[0,0],[0.25
 let items=[];
 const JSONIN=process.argv.indexOf('--json');
 if(JSONIN>0){ const E=JSON.parse(fs.readFileSync(process.argv[JSONIN+1],'utf8'));
- for(const e of E){ if(e.fondo)continue; if(e.momento==='def')continue; items.push({id:e.persona||e.id,cat:e.category,imp:e.importance,y:e.year,lat:e.lat,lon:e.lon,reg:e.reg,es:e.labels.es,en:e.labels.en,fuente:e.fuente,mar:e.mar,nac:e.momento?{y:e.year,lat:e.lat,lon:e.lon}:undefined,def:e.otro?{y:e.otro.year,lat:e.otro.lat,lon:e.otro.lon}:undefined,_archivo:'json'}) } }
+ for(const e of E){ if(e.fondo)continue; if(e.momento==='def')continue; items.push({id:e.persona||e.id,cat:e.category,imp:e.importance,y:e.year,fin:e.fin,lat:e.lat,lon:e.lon,reg:e.reg,es:e.labels.es,en:e.labels.en,fuente:e.fuente,mar:e.mar,nac:e.momento?{y:e.year,lat:e.lat,lon:e.lon}:undefined,def:e.otro?{y:e.otro.year,lat:e.otro.lat,lon:e.otro.lon}:undefined,_archivo:'json'}) } }
 else { for(const f of fs.readdirSync(__dirname).filter(f=>/^canon_.*\.js$/.test(f)).sort()){ for(const e of require(path.join(__dirname,f))){ e._archivo=f; items.push(e) } } }
 
 const err=[], aviso=[]; const ids=new Map(); const titulos=new Map();
@@ -36,6 +36,7 @@ for(const e of items){
  if(!CATS.includes(e.cat))err.push(donde+': categoria invalida "'+e.cat+'"');
  if(!REGS.includes(e.reg))err.push(donde+': region invalida "'+e.reg+'"');
  if(!(e.imp>=1&&e.imp<=5))err.push(donde+': importancia invalida');
+ if(e.fin!==undefined&&!(typeof e.fin==='number'&&e.fin>e.y&&e.fin<=2026))err.push(donde+': fin invalido (debe ser un año posterior a y)');
  if(!e.es)err.push(donde+': sin titulo es');
  if(e._archivo==='json'&&!e.fuente)err.push(donde+': sin fuente');
  if(e.es&&e.es.length>90)aviso.push(donde+': titulo largo ('+e.es.length+')');

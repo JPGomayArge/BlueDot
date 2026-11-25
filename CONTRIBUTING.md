@@ -31,12 +31,12 @@ cd data/canon
 # edita canon_05_contemporanea.js (por ejemplo)
 node verifica_eventos.js              # esquema, duplicados, mar, cuotas
 node construye_eventos.js ../fondo_wikidata.json ../events_extended.json
-node empaqueta.js                     # eventos_base.json (va en la app) y paquetes/ por era
+node empaqueta.js                     # eventos_base.json (va en la app) y paquetes/ por siglo
 node verifica_wiki.js                 # (con red) que los títulos de Wikipedia existan
 ```
 
 La app lleva dentro `data/eventos_base.json` (el canon y el fondo de
-importancia 2). El fondo detallado va en paquetes por era que la acción
+importancia 2). El fondo detallado va en paquetes por siglo que la acción
 `publica datos` sube como release cuando el cambio entra en `main`; la app los
 descarga a elección de quien la usa. No se suben a mano.
 

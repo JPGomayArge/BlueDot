@@ -11,6 +11,11 @@ const TEMPLO=/^(iglesia|mezquita|monasterio|catedral|sinagoga|basílica|basilica
 function filtra(v){
  const es=N(v.labels&&v.labels.es), en=N(v.labels&&v.labels.en);
  if(RUIDO.test(es)||RUIDO.test(en))return null;
+ // El extractor nuevo (fondo_wikidata.js, v:2) ya trae la categoria de BlueDot
+ // y la importancia 1-2. Lo unico que se decide aqui: un suceso ubicado solo
+ // por su pais (aprox:2) vale para lo que ocurre "en un pais" (un tratado, una
+ // crisis, una ley), no para una batalla o un terremoto, que son de un sitio.
+ if(v.v===2){ if(v.aprox===2&&!['politica','economia','sociedad','ciencia','religion','cultura'].includes(v.category))return null; return {cat:v.category,imp:Math.min(2,Math.max(1,v.importance||1))} }
  const imp=Math.min(2,Math.max(1,(v.importance||1)-2));   // 5->2 (ya cubierto por el canon), 4->2, 3->1, 2->1, 1->1
  switch(v.category){
   case 'batallas': return {cat:'guerras',imp:Math.min(2,Math.max(1,(v.importance||1)-1))};

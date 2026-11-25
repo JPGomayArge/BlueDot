@@ -52,6 +52,8 @@ function save(src,R,CIV,path){
  if((R&&R.json)||/\.json$/i.test(p)){
   const destino=/\.json$/i.test(p)?p:R.json;
   const civs=CIV.map(c=>{ const o={id:c.id}; if(c.kind)o.kind=c.kind; o.name=c.name; o.color=c.color; if(c.etiqueta)o.etiqueta=c.etiqueta; if(c.wikiTitle)o.wikiTitle=c.wikiTitle;
+   // biografia del canon de civilizaciones (biografias.js); revisado null no se escribe
+   for(const k of ['canon','capital','resumen','fuente','dudas','revisado'])if(c[k]!==undefined&&c[k]!==null)o[k]=c[k];
    o.periods=c.periods.map(pe=>{ const q={start:pe.start,end:pe.end,rings:pe.rings.map(r=>idx.get(encRing(r)).toString(36)).join(',')}; if(pe.wikiTitle)q.wikiTitle=pe.wikiTitle; if(pe.name)q.name=pe.name; if(pe.inc)q.inc=1; return q }); return o });
   const M={version:(R&&R.version)||null,rings:dic,civilizations:civs};
   fs.writeFileSync(destino,'{"version":'+JSON.stringify(M.version)+',\n"rings":[\n'+dic.map(e=>JSON.stringify(e)).join(',\n')+'\n],\n"civilizations":[\n'+civs.map(c=>JSON.stringify(c)).join(',\n')+'\n]}\n');
