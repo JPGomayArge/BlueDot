@@ -41,7 +41,9 @@ for(const b of bios){
  for(let i=0;i<b.tramos.length;i++){ const t=b.tramos[i];
   if(typeof t.desde!=='number'||typeof t.hasta!=='number'||t.hasta<=t.desde)err.push(d+': tramo '+i+' con fechas invalidas');
   if(!t.nota||t.nota.length<15)err.push(d+': tramo '+i+' sin nota');
-  if(i&&t.desde!==b.tramos[i-1].hasta)err.push(d+': tramo '+i+' no empieza donde acaba el anterior ('+b.tramos[i-1].hasta+' vs '+t.desde+')');
+  // los tramos van en orden; puede haber hueco entre dos (una ocupacion, una desaparicion), nunca solape
+  if(i&&t.desde<b.tramos[i-1].hasta)err.push(d+': tramo '+i+' se solapa con el anterior ('+b.tramos[i-1].hasta+' vs '+t.desde+')');
+  if(i&&t.desde>b.tramos[i-1].hasta&&c.periods.some(p=>p.start>=b.tramos[i-1].hasta&&p.start<t.desde))err.push(d+': hay periodos del mapa en el hueco '+b.tramos[i-1].hasta+'..'+t.desde+' entre dos tramos');
   nTramos++ }
  // el mapa frente a la biografia
  const ini=Math.min(...c.periods.map(p=>p.start)), fin=Math.max(...c.periods.map(p=>p.end));

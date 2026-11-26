@@ -23,6 +23,8 @@ jobs:
           node construye_eventos.js ../fondo_wikidata.json,../fondo_wikidata_nuevo.json /tmp/events_extended.json
           node verifica_eventos.js --json /tmp/events_extended.json
           node empaqueta.js /tmp/events_extended.json /tmp
+      - name: biografias del canon de civilizaciones
+        run: cd data/canon && node --max-old-space-size=3000 biografias.js ../mapa.json
       - name: estructura del mapa
         run: |
           cd tools
