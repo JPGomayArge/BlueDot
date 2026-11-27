@@ -80,8 +80,14 @@ cubre el arco entero pero quedó corta fuera de Europa y antes del 1500; la
 segunda (`canon_07`..`canon_09`, 613 entradas, noviembre de 2026) rellena las
 celdas vacías (África, Asia central y del sur antes del -3000, América y
 Oceanía antes del 500, el siglo XVIII fuera de Europa) y añade las personas de
-los siglos XVIII a XX, que la primera no incluía. Con ambas se cumplen todas
-las cuotas. Unas treinta entradas de la tanda 2 (Kintampo, Urewe, Gedi, el
+los siglos XVIII a XX, que la primera no incluía; la tercera (`canon_10`..
+`canon_12`, 895 entradas, noviembre de 2026) va por temas, no por regiones:
+ciencia y técnica de todos los continentes, comercio y moneda, exploraciones
+anteriores a 1500, desastres y pandemias (la categoría más corta: pasa de 46 a
+129), sociedad, religión, arte, y 214 personas más, con las mujeres y los
+europeos y norteamericanos de los siglos XIX y XX que faltaban (Napoleón,
+Lincoln, Darwin, Marx, Curie, Einstein…). Con las tres, 2.575 entradas y todas
+las cuotas se cumplen con algo de margen (Europa 24 %, antes de 1500 46 %). Unas treinta entradas de la tanda 2 (Kintampo, Urewe, Gedi, el
 pacto de Poona, la Declaración de Arusha…) no tienen artículo en la Wikipedia en
 español: `verifica_wiki.js` las lista y la ficha pasa al artículo en inglés.
 Ninguna entrada está revisada por una persona todavía
