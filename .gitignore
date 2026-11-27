@@ -29,3 +29,5 @@ _to_delete/
 *.bak
 
 .DS_Store
+data/canon/wiki_sugerido.json
+data/canon/wiki_malos.json

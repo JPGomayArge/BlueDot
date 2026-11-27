@@ -7982,7 +7982,7 @@ function BotonCorreccion({ color, tipo, id, titulo, contexto }) {
 
 const INFO_SECTIONS = [
   { id:'version',      title:'Versión',               icon:'tag',
-    content:'BlueDot v0.1.0 — Alpha\nDatos: ' + DATOS_VERSION.fecha + ' · ' + DATOS_VERSION.eventos + ' eventos (' + DATOS_VERSION.canon + ' del canon revisado y ' + DATOS_VERSION.fondo + ' de fondo) · civilizaciones ' + DATOS_VERSION.civilizaciones + '.\nCita esta versión si usas los datos.\nDesarrollado con React Native + Expo Go.\nThree.js r128 para visualización 3D.' },
+    content:'BlueDot v0.1.0 — Alpha\nDatos: ' + DATOS_VERSION.fecha + ' · ' + DATOS_VERSION.eventos + ' eventos (' + DATOS_VERSION.canon + ' del canon, escritos uno a uno, y ' + DATOS_VERSION.fondo + ' de fondo, tomados de Wikidata) · civilizaciones ' + DATOS_VERSION.civilizaciones + '.\nCita esta versión si usas los datos.\nDesarrollado con React Native + Expo Go.\nThree.js r128 para visualización 3D.' },
   { id:'philosophy',   title:'Filosofía',              icon:'planet',
     content:'BlueDot nació de una pregunta simple: ¿qué pasaba en el mundo cuando nació tu abuelo?\n\nLa historia no ocurre en libros — ocurre en el tiempo y en el espacio, simultáneamente, en todos los rincones del planeta. Queremos que cada persona pueda sentirla, no solo leerla.' },
   { id:'howto',        title:'Cómo usar',              icon:'book',
@@ -7993,7 +7993,7 @@ const INFO_SECTIONS = [
   { id:'transparency', title:'Transparencia',          icon:'search',
     content:'BlueDot es un proyecto independiente sin financiamiento externo ni publicidad.\n\nNo recopilamos datos personales. Sin cuentas de usuario. Sin tracking de comportamiento.\n\nLos datos de Wikipedia se obtienen en tiempo real desde su API pública.' },
   { id:'disclaimer',   title:'Precisión de los datos', icon:'warning',
-    content:'La historia es un campo vivo: fechas e interpretaciones pueden variar según la fuente.\n\nAlgunos eventos pueden estar incompletos o simplificados para la visualización.\n\nSi encuentras un error, propón una corrección desde la propia ficha o desde aquí: queda registrada en público, se verifica automáticamente y se revisa antes de entrar en el mapa.',
+    content:'La historia es un campo vivo: fechas e interpretaciones pueden variar según la fuente.\n\nAlgunos eventos pueden estar incompletos o simplificados para la visualización.\n\nEl canon se escribió con cuotas por región y por época para que el mapa no cuente solo la historia de Europa. El fondo, en cambio, viene de Wikidata y hereda su sesgo: casi la mitad de sus sucesos están en Europa y seis de cada diez son posteriores a 1800. Si al acercarte ves muchos más puntos en Europa, es el fondo, no la historia.\n\nSi encuentras un error, propón una corrección desde la propia ficha o desde aquí: queda registrada en público, se verifica automáticamente y se revisa antes de entrar en el mapa.',
     action:{ label:'Proponer una corrección →', url: REPO_URL + '/issues/new/choose' } },
   { id:'donate',       title:'Apoya el proyecto',      icon:'heart',
     content:'BlueDot es gratuito y sin publicidad. Si te parece valioso, puedes apoyar su desarrollo con una donación voluntaria.',

@@ -41,7 +41,8 @@ function region(lat,lon){
   const norteAfrica=(lon<-1&&lat<36.2)||(lon>=-1&&lon<12&&lat<37.6)||(lon>=12&&lon<35&&lat<35);
   if(lat<18&&lon<30)return 'africa';
   if(lat<21&&lon>=24&&lon<40)return 'africa';                            // Nubia, Sudan central, Eritrea
-  if(lon>=30&&lon<44&&lat<15)return 'africa';
+  if(lon>=42.9&&lon<44&&lat>=12.6)return 'mena';                        // costa yemeni del mar Rojo (Moca, Hudayda)
+ if(lon>=30&&lon<44&&lat<15)return 'africa';
   if(lon>=44&&lat<12)return 'africa';
   if(lat>=18&&lon<35&&!norteAfrica&&lat>=35)return lon<26?'europa':'mena';
   if(norteAfrica||(lat>=18&&lon<35)||(lon>=35&&lat<38))return 'mena';
@@ -52,6 +53,7 @@ function region(lat,lon){
  if(lon>=34&&lon<60&&lat>=12&&lat<32)return 'mena';                       // Arabia
  if(lon>=52&&lon<100&&lat>=37)return (lon<60&&lat>=43)?'europa':'asia_central';   // Turkmenistan..Kazajistan; Rusia europea hasta el Ural
  if(lon>=-25&&lon<60&&lat>=35)return 'europa';
+ if(lon>=120&&lat>=40&&lat<50)return 'asia_oriental';                              // Manchuria, Hokkaido, Primorie
  if(lon>=60&&lat>=42)return 'asia_central';                                // Siberia, Mongolia
  if(lon>=60&&lon<72&&lat>=33)return 'asia_central';                        // Afganistan
  if(lon>=78&&lon<100&&lat>=28.5)return 'asia_central';                     // Tibet

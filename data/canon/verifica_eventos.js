@@ -72,6 +72,6 @@ if(total){ console.log('\nCUOTAS (sobre '+total+'):');
  console.log('  '+(post1800/total<=0.40?'ok ':'!! ')+'1800..2025      '+(100*post1800/total).toFixed(0)+'%  (<= 40%)');
  console.log('  '+(post1950/total<=0.15?'ok ':'!! ')+'1950..2025      '+(100*post1950/total).toFixed(0)+'%  (<= 15%)');
  console.log('  celdas por debajo del minimo: faltan '+faltan+' eventos en total'); }
-if(aviso.length){ console.log('\nAVISOS ('+aviso.length+')'); for(const a of aviso.slice(0,30))console.log('  '+a) }
+if(aviso.length){ console.log('\nAVISOS ('+aviso.length+')'); for(const a of aviso)console.log('  '+a) }
 if(err.length){ console.log('\nERRORES ('+err.length+')'); for(const e of err.slice(0,60))console.log('  '+e); process.exit(1) }
 console.log('\nsin errores');

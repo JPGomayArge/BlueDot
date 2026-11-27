@@ -70,6 +70,23 @@ Por región, sobre el total: europa ≤ 25 %, latam ≥ 14 %, africa ≥ 9 %, me
 menos 6 eventos (Oceanía y las Américas antes del -3000, al menos 2).
 `verifica_eventos.js` imprime la matriz y marca lo que falta.
 
+Cuando la región declarada no coincide con la que dan las coordenadas (un
+tratado sobre Oriente Medio firmado en Washington, un suceso otomano en la
+orilla europea de Estambul), la entrada lo dice en `nota`: el verificador lo
+avisa pero no lo impide, y la ficha explica el criterio.
+
+Tandas: la primera (`canon_01`..`canon_06`, 1.067 entradas, octubre de 2026)
+cubre el arco entero pero quedó corta fuera de Europa y antes del 1500; la
+segunda (`canon_07`..`canon_09`, 613 entradas, noviembre de 2026) rellena las
+celdas vacías (África, Asia central y del sur antes del -3000, América y
+Oceanía antes del 500, el siglo XVIII fuera de Europa) y añade las personas de
+los siglos XVIII a XX, que la primera no incluía. Con ambas se cumplen todas
+las cuotas. Unas treinta entradas de la tanda 2 (Kintampo, Urewe, Gedi, el
+pacto de Poona, la Declaración de Arusha…) no tienen artículo en la Wikipedia en
+español: `verifica_wiki.js` las lista y la ficha pasa al artículo en inglés.
+Ninguna entrada está revisada por una persona todavía
+(`revisado:null`); la app lo muestra así.
+
 ## Esquema de una entrada del canon
 
 ```js
