@@ -53,6 +53,7 @@ const RAICES=[
  ['Q2223653','terrorist attack'],
  ['Q175331','demonstration'],
  ['Q290178','financial crisis'],
+ ['Q1621981','maritime disaster'],
 ];
 const RAICES_PRUEBA=[['Q178561','battle'],['Q7944','earthquake']];
 
@@ -125,10 +126,11 @@ async function cuentas(cls){
 // 3. las instancias de una clase en un tramo de años (parte el tramo si se llena)
 const LIMITE=4000;
 async function instancias(cls,desde,hasta,prop){
- const q=`SELECT ?item ?t WHERE { ?item wdt:P31 wd:${cls} . ?item p:${prop}/psv:${prop} ?v . ?v wikibase:timeValue ?t ; wikibase:timePrecision ?p . FILTER(?p >= 9) FILTER(?t >= "${fecha(desde<0?desde+1:desde)}"^^xsd:dateTime && ?t < "${fecha(hasta<0?hasta+1:hasta)}"^^xsd:dateTime) ${prop==='P580'?'FILTER NOT EXISTS { ?item wdt:P585 [] }':''} } LIMIT ${LIMITE}`;
+ const precMin=hasta<=1500?7:9;   // antes de 1500 valen fechas por siglo o decada (la app las enseña como "c.")
+ const q=`SELECT ?item ?t ?p WHERE { ?item wdt:P31 wd:${cls} . ?item p:${prop}/psv:${prop} ?v . ?v wikibase:timeValue ?t ; wikibase:timePrecision ?p . FILTER(?p >= ${precMin}) FILTER(?t >= "${fecha(desde<0?desde+1:desde)}"^^xsd:dateTime && ?t < "${fecha(hasta<0?hasta+1:hasta)}"^^xsd:dateTime) ${prop==='P580'?'FILTER NOT EXISTS { ?item wdt:P585 [] }':''} } LIMIT ${LIMITE}`;
  const rs=await sparql(q);
  if(rs.length>=LIMITE&&hasta-desde>1){ const m=Math.floor((desde+hasta)/2); log('   '+cls+' '+prop+' '+desde+'..'+hasta+' lleno, parto'); return (await instancias(cls,desde,m,prop)).concat(await instancias(cls,m,hasta,prop)) }
- return rs.map(b=>({item:qid(v(b,'item')),t:v(b,'t')}));
+ return rs.map(b=>({item:qid(v(b,'item')),t:v(b,'t'),p:parseInt(v(b,'p')||'9')}));
 }
 // Wikidata exporta las fechas a.C. en año astronomico (con año 0): "-1762" es 1763 a.C.
 // BlueDot, como las cronicas, no tiene año 0: 1763 a.C. es -1763. Se resta uno.
@@ -173,8 +175,8 @@ const slug=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').repl
  let k=0;
  for(const c of conInst){ k++;
   const cat=categoriaDe(c.etiqueta); c.cat=cat; if(cat===null){ continue }
-  const rs=await cache('inst_'+c.id+'_'+DESDE+'_'+HASTA+'.json',async()=>(await instancias(c.id,DESDE,HASTA,'P585')).concat(await instancias(c.id,DESDE,HASTA,'P580')));
-  let n=0; for(const r of rs){ const y=anioDe(r.t); if(y===null||y<DESDE||y>=HASTA)continue; const o=items.get(r.item)||{anio:y,clases:[]}; o.clases.push(c.id); if(o.anio!==y&&o.clases.length===1)o.anio=y; items.set(r.item,o); n++ }
+  const rs=await cache('inst2_'+c.id+'_'+DESDE+'_'+HASTA+'.json',async()=>(await instancias(c.id,DESDE,HASTA,'P585')).concat(await instancias(c.id,DESDE,HASTA,'P580')));
+  let n=0; for(const r of rs){ const y=anioDe(r.t); if(y===null||y<DESDE||y>=HASTA)continue; const o=items.get(r.item)||{anio:y,clases:[],prec:r.p}; o.clases.push(c.id); if(o.anio!==y&&o.clases.length===1)o.anio=y; items.set(r.item,o); n++ }
   c.n=n; if(n||k%50===0)log('['+k+'/'+conInst.length+'] '+c.etiqueta+' ('+c.id+'): '+n+' -> '+cat+'   · '+items.size+' acumulados');
  }
  log('descubrimiento: '+items.size+' sucesos distintos, '+nConsultas+' consultas');
@@ -206,7 +208,7 @@ const slug=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').repl
   let p=punto(d.c0), aprox=0; if(!p){ p=punto(d.c1)||punto(d.c2); if(p)aprox=1 } if(!p){ p=punto(d.c3); if(p)aprox=2 }
   if(!p){ sinUbic.push(id); continue }
   const sl=parseInt(d.sl||'0'); const imp=sl>=20?2:1;
-  out.push({id:slug(es)+'_'+id.toLowerCase(),year:o.anio,lat:+p.lat.toFixed(3),lon:+p.lon.toFixed(3),labels:{es,en},category:cat,importance:imp,wikiTitles:{es:d.artEs||es,en:d.artEn||en},wikidataId:id,aprox:aprox||undefined,fin:(fines[id]>o.anio&&fines[id]-o.anio<=200)?fines[id]:undefined,clase:o.clases[0],sitelinks:sl,v:2});
+  out.push({id:slug(es)+'_'+id.toLowerCase(),year:o.anio,lat:+p.lat.toFixed(3),lon:+p.lon.toFixed(3),labels:{es,en},category:cat,importance:imp,wikiTitles:{es:d.artEs||es,en:d.artEn||en},wikidataId:id,aprox:aprox||undefined,fin:(fines[id]>o.anio&&fines[id]-o.anio<=200)?fines[id]:undefined,fechaAprox:o.prec===7?'siglo':o.prec===8?'decada':undefined,clase:o.clases[0],sitelinks:sl,v:2});
   porCat[cat]=(porCat[cat]||0)+1; porAprox[aprox]++;
  }
  out.sort((a,b)=>a.year-b.year||a.id.localeCompare(b.id));

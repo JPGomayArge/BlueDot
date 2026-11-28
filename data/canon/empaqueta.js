@@ -56,13 +56,13 @@ console.log('base: '+base.length+' eventos ('+nCanon+' canon + '+(base.length-nC
 // --- eras: fondo de importancia 1, compacto ----------------------------------------
 // Fila: [id, anio, lat, lon, es, en, cat, reg, wikidataId, wiki_es, wiki_en, aprox, fin]
 // en vacio = igual que es; wiki_es/wiki_en vacios = iguales a la etiqueta.
-const CAMPOS=['id','year','lat','lon','es','en','cat','reg','wd','wiki_es','wiki_en','aprox','fin'];
+const CAMPOS=['id','year','lat','lon','es','en','cat','reg','wd','wiki_es','wiki_en','aprox','fin','fechaAprox'];
 const DIR=path.join(DATA,'paquetes'); fs.mkdirSync(DIR,{recursive:true});
 const resto=E.filter(e=>e.fondo&&(e.importance||1)<2);
 const porPaq=new Map(PAQUETES.map(r=>[r.id,[]]));
 for(const e of resto){ const es=e.labels.es||e.labels.en||'', en=e.labels.en||'';
  const wes=(e.wikiTitles&&e.wikiTitles.es)||'', wen=(e.wikiTitles&&e.wikiTitles.en)||'';
- porPaq.get(paqueteDe(e.year).id).push([e.id,e.year,+(+e.lat).toFixed(2),+(+e.lon).toFixed(2),es,en===es?'':en,e.category,e.reg||'',e.wikidataId||0,wes===es?'':wes,wen===(en||es)?'':wen,e.aprox||0,e.fin||0]) }
+ porPaq.get(paqueteDe(e.year).id).push([e.id,e.year,+(+e.lat).toFixed(2),+(+e.lon).toFixed(2),es,en===es?'':en,e.category,e.reg||'',e.wikidataId||0,wes===es?'':wes,wen===(en||es)?'':wen,e.aprox||0,e.fin||0,e.fechaAprox==='siglo'?'s':e.fechaAprox==='decada'?'d':0]) }
 const manifiesto={fecha:FECHA,base:{eventos:base.length,canon:nCanon,fecha:FECHA},campos:CAMPOS,paquetes:[]};
 for(const r of PAQUETES){ const filas=porPaq.get(r.id); filas.sort((a,b)=>a[1]-b[1]||(a[0]<b[0]?-1:1));
  const obj={id:r.id,nombre:r.nombre,desde:r.desde,hasta:r.hasta,fecha:FECHA,eventos:filas.length,campos:CAMPOS,e:filas};

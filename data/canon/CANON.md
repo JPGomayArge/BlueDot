@@ -87,7 +87,25 @@ anteriores a 1500, desastres y pandemias (la categoría más corta: pasa de 46 a
 129), sociedad, religión, arte, y 214 personas más, con las mujeres y los
 europeos y norteamericanos de los siglos XIX y XX que faltaban (Napoleón,
 Lincoln, Darwin, Marx, Curie, Einstein…). Con las tres, 2.575 entradas y todas
-las cuotas se cumplen con algo de margen (Europa 24 %, antes de 1500 46 %). Unas treinta entradas de la tanda 2 (Kintampo, Urewe, Gedi, el
+las cuotas se cumplen con algo de margen (Europa 24 %, antes de 1500 46 %).
+Después van `canon_13_vitales.js` (lo que la lista de control echó en falta) y
+los sucesos paraguas con `fin` (las guerras mundiales, la Guerra Fría, las
+cruzadas…), que se ven durante todo su tramo. La cuarta tanda
+(`canon_14_mujeres.js`, 126 entradas) es solo de mujeres: en las tres primeras
+había unas 70 entre 433 personas y el fondo hereda el mismo desequilibrio de
+Wikidata. Ninguna entra por cuota: cada una gobernó, escribió, descubrió o
+encabezó algo que su región recuerda; 36 son anteriores a 1500 y una de cada
+cinco es europea. Cuando el lugar de nacimiento no se conoce, el pin va donde
+actuó y la nota lo dice. Con las cuatro, 2.810 entradas (559 personas).
+
+## La lista de control (`vitales.js`)
+
+Una lista de más de mil sucesos y personas que nadie de su región puede echar
+en falta, con año y una expresión que debe aparecer en el título. Comprueba el
+archivo construido y dice si cada uno está en el canon, solo en el fondo (se
+vería tarde) o falta. Corre en cada push. Es una red contra los olvidos que ya
+nos pasaron, no una definición de "la historia": si algo no debería faltar y
+no está en la lista, se añade a la lista, una línea por hecho. Unas treinta entradas de la tanda 2 (Kintampo, Urewe, Gedi, el
 pacto de Poona, la Declaración de Arusha…) no tienen artículo en la Wikipedia en
 español: `verifica_wiki.js` las lista y la ficha pasa al artículo en inglés.
 Ninguna entrada está revisada por una persona todavía
@@ -151,7 +169,40 @@ tratados, terremotos, expediciones…) por clases de suceso, y
 se descubre (universidades, bancos, catedrales, ciudades, Estados, obras,
 puentes, elementos químicos) y lo convierte en suceso ("Universidad de
 Salamanca: fundación"). Cada raíz exige un mínimo de Wikipedias enlazadas para
-no traer ruido. Los tres volcados se funden en `construye_eventos.js`.
+no traer ruido. `fondo_wikidata_personas.js` trae personas con lugar de
+nacimiento (y de muerte si lo hay), dos pines enlazados. Los cuatro volcados se
+funden en `construye_eventos.js`; el orden de la lista importa: un volcado
+posterior sustituye al anterior cuando traen la misma entidad, así que el viejo
+(`fondo_wikidata.json`, sin sitelinks) va primero.
+
+### Contra el sesgo del fondo (paso 2, noviembre de 2026)
+
+Wikidata tiene mucho más escrito de Europa y de los últimos dos siglos, y los
+extractores lo heredan. Lo que se hace al respecto, todo en `fondo.js` salvo
+lo marcado:
+
+- **Listones por región.** De Europa y Norteamérica un suceso posterior a 1500
+  necesita 5 Wikipedias, posterior a 1950, 10, y anterior a 1500, 3 (cada
+  escaramuza feudal tiene artículo; con ese listón la Edad Media bajó de 63 % a
+  43 % europea). Una entidad europea necesita 35 (un invento, 20). Una persona
+  europea necesita 60 Wikipedias (100 si nació desde 1900); del resto del mundo,
+  12 (40 desde 1900). Al resto del mundo no se le pide nada más.
+- **Fechas por siglo** (extractores): antes de 1500 valen fechas con precisión
+  de siglo o década, que es como está datada la Edad Media fuera de Europa; van
+  con `fechaAprox` y la app las enseña con "c.".
+- **Raíces que cargan fuera de Europa** (entidades): reinos, imperios,
+  dinastías, yacimientos arqueológicos, estupas, mezquitas y templos con
+  mínimos bajos.
+- **Inventos y descubrimientos** (entidades, raíz `*P575`): todo lo que tiene
+  "fecha de descubrimiento o invención". Esa propiedad la llevan también
+  cúmulos estelares, atolones "descubiertos", tumbas y aperturas de ajedrez, así
+  que una pasada clasifica por clase: astronomía, ajedrez y meteoritos quedan
+  fuera; los lugares pasan a `exploracion` como "primer registro documentado"
+  (quien vivía allí ya lo conocía) y solo con 15 Wikipedias; obras, tumbas y
+  hallazgos pasan a `cultura` como "descubrimiento". Un invento sin
+  coordenadas se ubica por el lugar del descubrimiento o por donde trabajó o
+  nació su autor (`aprox`).
+- **Terremotos:** desde 1800 necesitan 8 Wikipedias (de 1.625 quedaron 340).
 
 ## Reglas de redacción
 

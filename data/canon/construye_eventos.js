@@ -74,7 +74,7 @@ if(!SINFONDO){
   const k=norm(v.labels.es).split(' ').filter(w=>w.length>4).slice(0,3).join(' '); if(k&&palabrasCanon.has(v.year+'|'+k)){nDup++;continue}
   const o={id:v.id,year:v.year,lat:v.lat,lon:v.lon,labels:v.labels,category:r.cat,importance:r.imp,wikiTitles:v.wikiTitles||v.labels,reg:F.region(v.lat,v.lon),fondo:1,fuente:v.wikidataId?'wikidata:Q'+String(v.wikidataId).replace(/^Q/,''):'wikidata',alta:'2026-10-11',autor:'wikidata',revisado:null};
   if(v.wikidataId)o.wikidataId=String(v.wikidataId).replace(/^Q/,'');   // sin la Q, como el volcado viejo
-  if(v.aprox)o.aprox=v.aprox;
+  if(v.aprox)o.aprox=v.aprox; if(v.fechaAprox)o.fechaAprox=v.fechaAprox;
   if(v.momento){ o.momento=v.momento; o.persona=v.persona; if(v.lugar)o.lugar=v.lugar; if(v.otro)o.otro=v.otro }
   if(typeof v.fin==='number'&&v.fin>v.year)o.fin=v.fin;   // ubicacion derivada del lugar (1) o del pais (2): la ficha lo dice
   if(ids.has(o.id)){nDup++;continue}

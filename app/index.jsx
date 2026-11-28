@@ -1061,7 +1061,7 @@ const Paquetes = {
         id: r[0], year: r[1], lat: r[2], lon: r[3],
         labels: { es, en }, category: r[6], importance: 1, reg: r[7] || undefined,
         wikiTitles: { es: r[9] || es, en: r[10] || en },
-        wikidataId: r[8] || undefined, aprox: r[11] || undefined, fin: r[12] || undefined,
+        wikidataId: r[8] || undefined, aprox: r[11] || undefined, fin: r[12] || undefined, fechaAprox: r[13] === 's' ? 'siglo' : r[13] === 'd' ? 'decada' : undefined,
         fondo: 1, fuente: r[8] ? 'wikidata:Q' + String(r[8]).replace(/^Q/, '') : 'wikidata',
         alta: obj.fecha || null, autor: 'wikidata', revisado: null,
       });
@@ -5622,7 +5622,9 @@ function EventCard({ event, onClose, activeCategories, onAskAI }) {
   };
 
   const anioTxt = (y) => y < 0 ? `${Math.abs(y)} a.C.` : `${y} d.C.`;
-  const evYearStr = event.fin && event.fin !== event.year ? anioTxt(event.year) + ' – ' + anioTxt(event.fin) : anioTxt(event.year);
+  // Fecha con precisión de siglo o década (Wikidata): se enseña como aproximada, no como exacta.
+  const circa = event.fechaAprox ? 'c. ' : '';
+  const evYearStr = circa + (event.fin && event.fin !== event.year ? anioTxt(event.year) + ' – ' + anioTxt(event.fin) : anioTxt(event.year));
   const catMeta = CATEGORY_META[event.category] || { label:'', emoji:'', color };
   const evLabelEs = event.labels?.es || event.label;
   // Some Spanish event names are proper nouns that read like ordinary

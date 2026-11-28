@@ -35,3 +35,5 @@ data/fondo_wikidata_entidades_prueba.json
 salida_entidades.txt
 salida_personas.txt
 data/fondo_wikidata_personas_prueba.json
+salida_construye.txt
+salida_sucesos.txt

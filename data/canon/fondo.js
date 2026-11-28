@@ -26,8 +26,14 @@ function filtra(v){
  // 1950, diez; al resto del mundo no se le pide ninguna. Es la misma idea que las
  // cuotas del canon: el liston se pone segun cuanto se ha escrito de cada region.
  if(typeof v.lat==='number'){ const r=region(v.lat,v.lon); const occ=(r==='europa'||r==='norteamerica');
-  if(v.category==='personas'){ const min=occ?(v.year>=1900?100:60):(v.year>=1900?40:20); if((v.sitelinks||0)<min)return null }
-  else if(occ&&((v.year>=1950&&(v.sitelinks||0)<10)||(v.year>=1500&&(v.sitelinks||0)<5)))return null }
+  if(v.category==='personas'){ const min=occ?(v.year>=1900?100:60):(v.year>=1900?40:12); if((v.sitelinks||0)<min)return null }
+  else if(v.tipo==='entidad'){
+   if(v.clase==='place first documented'&&(v.sitelinks||0)<15)return null;   // atolones e islotes "descubiertos": solo los que cuentan 15 Wikipedias
+   if(occ&&(v.sitelinks||0)<(v.category==='ciencia'?20:35))return null }   // una iglesia o un pueblo europeo necesita 35 Wikipedias (un invento, 20); una mezquita suajili, las del extractor
+  else if(occ&&((v.year>=1950&&(v.sitelinks||0)<10)||(v.year>=1500&&(v.sitelinks||0)<5)||(v.year<1500&&(v.sitelinks||0)<3)))return null }
+  // Antes de 1500 el registro europeo es tan denso (cada escaramuza feudal tiene su
+  // articulo) que la Edad Media salia 58% europea: un suceso europeo medieval o antiguo
+  // necesita tres Wikipedias; el volcado viejo, que no trae sitelinks, cae en ese tramo.
  if(v.v===2){ if(v.aprox===2&&!['politica','economia','sociedad','ciencia','religion','cultura'].includes(v.category))return null; return {cat:v.category,imp:Math.min(2,Math.max(1,v.importance||1))} }
  const imp=Math.min(2,Math.max(1,(v.importance||1)-2));   // 5->2 (ya cubierto por el canon), 4->2, 3->1, 2->1, 1->1
  switch(v.category){
