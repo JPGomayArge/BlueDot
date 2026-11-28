@@ -61,12 +61,16 @@ if(!SINFONDO){
  for(const ruta of viejo.split(',')){ if(!fs.existsSync(ruta.trim())){ console.log('aviso: no existe '+ruta.trim()+', sigo sin ese volcado'); continue } for(const v of JSON.parse(fs.readFileSync(ruta.trim(),'utf8'))){ if(v.wikidataId){ const q=String(v.wikidataId).replace(/^Q/,'')+(v.momento?'|'+v.momento:''); if(porQ.has(q)){ V[porQ.get(q)]=v; continue } porQ.set(q,V.length) } V.push(v) } }
  // indice del canon por anio+titulo normalizado, para no duplicar
  const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\b(de|del|la|el|los|las|en|y|the|of|a)\b/g,' ').replace(/\s+/g,' ').trim();
- const claves=new Set(); for(const o of out){ claves.add(o.year+'|'+norm(o.labels.es).slice(0,20)); if(o.wikidataId)claves.add('Q'+String(o.wikidataId).replace(/^Q/,'')) }
+ const claves=new Set(); const wikis=new Set(); const personas=new Map();
+ for(const o of out){ for(const dy of [-1,0,1])claves.add((o.year+dy)+'|'+norm(o.labels.es).slice(0,20)); if(o.wikidataId)claves.add('Q'+String(o.wikidataId).replace(/^Q/,''));
+  if(o.wikiTitles){ for(const t of [o.wikiTitles.es,o.wikiTitles.en])if(t)wikis.add(norm(t)) }
+  if(o.persona){ const k=norm(o.labels.es); (personas.get(k)||personas.set(k,[]).get(k)).push(o.year) } }
  const palabrasCanon=new Map(); for(const o of out){ const k=norm(o.labels.es).split(' ').filter(w=>w.length>4).slice(0,3).join(' '); if(k)palabrasCanon.set(o.year+'|'+k,o.id) }
  for(const v of V){ const r=F.filtra(v); if(!r)continue;
   if(v.wikidataId&&claves.has('Q'+String(v.wikidataId).replace(/^Q/,''))){nDup++;continue}
   if(claves.has(v.year+'|'+norm(v.labels.es).slice(0,20))){nDup++;continue}
-  if(v.persona&&claves.has(v.year+'|'+norm(v.persona).slice(0,20))){nDup++;continue}   // la persona ya esta en el canon
+  if(v.persona){ const ys=personas.get(norm(v.persona)); if(ys&&ys.some(y=>Math.abs(y-v.year)<=10)){nDup++;continue} }   // la persona ya esta en el canon (fechas de nacimiento discrepan en pocos años)
+  if(v.wikiTitles&&((v.wikiTitles.es&&wikis.has(norm(v.wikiTitles.es)))||(v.wikiTitles.en&&wikis.has(norm(v.wikiTitles.en))))){nDup++;continue}   // mismo articulo de Wikipedia que una entrada del canon (sucesos y personas)
   const k=norm(v.labels.es).split(' ').filter(w=>w.length>4).slice(0,3).join(' '); if(k&&palabrasCanon.has(v.year+'|'+k)){nDup++;continue}
   const o={id:v.id,year:v.year,lat:v.lat,lon:v.lon,labels:v.labels,category:r.cat,importance:r.imp,wikiTitles:v.wikiTitles||v.labels,reg:F.region(v.lat,v.lon),fondo:1,fuente:v.wikidataId?'wikidata:Q'+String(v.wikidataId).replace(/^Q/,''):'wikidata',alta:'2026-10-11',autor:'wikidata',revisado:null};
   if(v.wikidataId)o.wikidataId=String(v.wikidataId).replace(/^Q/,'');   // sin la Q, como el volcado viejo

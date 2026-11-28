@@ -19,6 +19,7 @@ function filtra(v){
  // Terremotos: el registro sismico trae miles sin historia detras. Entra uno si es
  // anterior a 1800 (de esos solo quedan los que dejaron huella) o si tiene al menos
  // ocho Wikipedias. Los del volcado viejo no traen sitelinks y caen salvo los antiguos.
+ if(v.tipo==='entidad'&&v.clase==='country')return null;   // la "fecha de fundacion" de un pais actual en Wikidata es arbitraria (España 1812, Japón 1890)
  if(v.category==='desastres'&&TERREMOTO.test(es+' '+en)&&v.year>=1800&&(v.sitelinks||0)<8)return null;
  // El liston por region: de Europa y Norteamerica hay registro de sobra, asi que
  // un suceso suyo posterior a 1500 necesita cinco Wikipedias y uno posterior a
