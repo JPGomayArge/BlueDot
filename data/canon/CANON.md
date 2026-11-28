@@ -145,6 +145,14 @@ Se tiran: `personas` (sustituidas por el canon), `inventos` (galaxias NGC),
 duplique una entrada del canon (mismo año y título parecido). Un evento del
 fondo nunca sube de 2.
 
+Hay dos extractores de Wikidata: `fondo_wikidata.js` trae sucesos (batallas,
+tratados, terremotos, expediciones…) por clases de suceso, y
+`fondo_wikidata_entidades.js` trae lo que se funda, se construye, se publica o
+se descubre (universidades, bancos, catedrales, ciudades, Estados, obras,
+puentes, elementos químicos) y lo convierte en suceso ("Universidad de
+Salamanca: fundación"). Cada raíz exige un mínimo de Wikipedias enlazadas para
+no traer ruido. Los tres volcados se funden en `construye_eventos.js`.
+
 ## Reglas de redacción
 
 Título en español, corto, que diga qué pasó ("Apolo 11: los primeros humanos en

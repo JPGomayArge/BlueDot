@@ -58,7 +58,7 @@ if(!SINFONDO){
  // varios volcados separados por coma (el viejo, con coordenadas, y el nuevo de fondo_wikidata.js):
  // el mismo suceso en los dos se queda con la version del ultimo archivo que lo trae
  const porQ=new Map(); const V=[];
- for(const ruta of viejo.split(',')){ for(const v of JSON.parse(fs.readFileSync(ruta.trim(),'utf8'))){ if(v.wikidataId){ const q=String(v.wikidataId).replace(/^Q/,''); if(porQ.has(q)){ V[porQ.get(q)]=v; continue } porQ.set(q,V.length) } V.push(v) } }
+ for(const ruta of viejo.split(',')){ if(!fs.existsSync(ruta.trim())){ console.log('aviso: no existe '+ruta.trim()+', sigo sin ese volcado'); continue } for(const v of JSON.parse(fs.readFileSync(ruta.trim(),'utf8'))){ if(v.wikidataId){ const q=String(v.wikidataId).replace(/^Q/,''); if(porQ.has(q)){ V[porQ.get(q)]=v; continue } porQ.set(q,V.length) } V.push(v) } }
  // indice del canon por anio+titulo normalizado, para no duplicar
  const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\b(de|del|la|el|los|las|en|y|the|of|a)\b/g,' ').replace(/\s+/g,' ').trim();
  const claves=new Set(); for(const o of out){ claves.add(o.year+'|'+norm(o.labels.es).slice(0,20)); if(o.wikidataId)claves.add('Q'+String(o.wikidataId).replace(/^Q/,'')) }

@@ -31,3 +31,5 @@ _to_delete/
 .DS_Store
 data/canon/wiki_sugerido.json
 data/canon/wiki_malos.json
+data/fondo_wikidata_entidades_prueba.json
+salida_entidades.txt
