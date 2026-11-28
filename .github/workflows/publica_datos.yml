@@ -25,7 +25,7 @@ jobs:
       - name: construir, verificar y empaquetar
         run: |
           cd data/canon
-          node construye_eventos.js ../fondo_wikidata.json,../fondo_wikidata_nuevo.json,../fondo_wikidata_entidades.json ../events_extended.json
+          node construye_eventos.js ../fondo_wikidata.json,../fondo_wikidata_nuevo.json,../fondo_wikidata_entidades.json,../fondo_wikidata_personas.json ../events_extended.json
           node verifica_eventos.js --json ../events_extended.json
           node empaqueta.js ../events_extended.json ..
       - name: publicar la release

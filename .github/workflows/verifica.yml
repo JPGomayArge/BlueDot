@@ -20,8 +20,9 @@ jobs:
       - name: construir eventos y verificar el resultado
         run: |
           cd data/canon
-          node construye_eventos.js ../fondo_wikidata.json,../fondo_wikidata_nuevo.json,../fondo_wikidata_entidades.json /tmp/events_extended.json
+          node construye_eventos.js ../fondo_wikidata.json,../fondo_wikidata_nuevo.json,../fondo_wikidata_entidades.json,../fondo_wikidata_personas.json /tmp/events_extended.json
           node verifica_eventos.js --json /tmp/events_extended.json
+          node vitales.js /tmp/events_extended.json
           node empaqueta.js /tmp/events_extended.json /tmp
       - name: biografias del canon de civilizaciones
         run: cd data/canon && node --max-old-space-size=3000 biografias.js ../mapa.json

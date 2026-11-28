@@ -6,6 +6,7 @@
 // conserva y en que categoria nueva; nunca sube de importancia 2. Las personas
 // se tiran enteras: el canon trae las suyas, con nacimiento y muerte.
 const N=s=>(s||'').toLowerCase();
+const TERREMOTO=/terremoto|sismo|se[ií]smo|earthquake|temblor/i;
 const RUIDO=/^(ngc|messier|ic \d|cúmulo|cumulo|nebulosa|gliese|arp|campeonato|copa |liga |universiada|eurocopa|clasificación|anexo:|torneo|mundial de|grand prix|temporada)/;
 const TEMPLO=/^(iglesia|mezquita|monasterio|catedral|sinagoga|basílica|basilica|abadía|abadia|church|mosque|masjid|cartuja|convento|templo|santuario|capilla|pagoda|gran mezquita|great mosque|grand mosque|stupa|estupa)/;
 function filtra(v){
@@ -15,6 +16,17 @@ function filtra(v){
  // y la importancia 1-2. Lo unico que se decide aqui: un suceso ubicado solo
  // por su pais (aprox:2) vale para lo que ocurre "en un pais" (un tratado, una
  // crisis, una ley), no para una batalla o un terremoto, que son de un sitio.
+ // Terremotos: el registro sismico trae miles sin historia detras. Entra uno si es
+ // anterior a 1800 (de esos solo quedan los que dejaron huella) o si tiene al menos
+ // ocho Wikipedias. Los del volcado viejo no traen sitelinks y caen salvo los antiguos.
+ if(v.category==='desastres'&&TERREMOTO.test(es+' '+en)&&v.year>=1800&&(v.sitelinks||0)<8)return null;
+ // El liston por region: de Europa y Norteamerica hay registro de sobra, asi que
+ // un suceso suyo posterior a 1500 necesita cinco Wikipedias y uno posterior a
+ // 1950, diez; al resto del mundo no se le pide ninguna. Es la misma idea que las
+ // cuotas del canon: el liston se pone segun cuanto se ha escrito de cada region.
+ if(typeof v.lat==='number'){ const r=region(v.lat,v.lon); const occ=(r==='europa'||r==='norteamerica');
+  if(v.category==='personas'){ const min=occ?(v.year>=1900?100:60):(v.year>=1900?40:20); if((v.sitelinks||0)<min)return null }
+  else if(occ&&((v.year>=1950&&(v.sitelinks||0)<10)||(v.year>=1500&&(v.sitelinks||0)<5)))return null }
  if(v.v===2){ if(v.aprox===2&&!['politica','economia','sociedad','ciencia','religion','cultura'].includes(v.category))return null; return {cat:v.category,imp:Math.min(2,Math.max(1,v.importance||1))} }
  const imp=Math.min(2,Math.max(1,(v.importance||1)-2));   // 5->2 (ya cubierto por el canon), 4->2, 3->1, 2->1, 1->1
  switch(v.category){

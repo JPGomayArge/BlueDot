@@ -50,7 +50,7 @@ const RAICES=[
  // politica: Estados, ciudades, partidos, organizaciones
  ['Q3024240','historical country','politica',['P571'],12,FUND],
  ['Q6256','country','politica',['P571'],30,FUND],
- ['Q515','city','politica',['P571'],40,FUND],
+ ['Q515','city','politica',['P571'],30,FUND],
  ['Q7278','political party','politica',['P571'],15,FUND],
  ['Q484652','international organization','politica',['P571'],15,FUND],
  // sociedad: universidades, hospitales, movimientos, prensa
@@ -83,17 +83,17 @@ const RAICES=[
  ['Q820477','mine','economia',['P571'],15,{es:'{}: apertura',en:'{} opens'}],
  ['Q1248784','airport','economia',['P1619','P571'],40,INAU],
  ['Q159719','power station','economia',['P1619','P571'],25,INAU],
- ['Q4830453','business','economia',['P571'],60,FUND],
+ ['Q4830453','business','economia',['P571'],50,FUND],
  // cultura
  ['Q33506','museum','cultura',['P571','P1619'],20,FUND],
  ['Q7075','library','cultura',['P571','P1619'],20,FUND],
  ['Q24354','theatre','cultura',['P1619','P571'],20,INAU],
- ['Q7725634','literary work','cultura',['P577'],40,PUBL],
- ['Q3305213','painting','cultura',['P571'],40,{es:'{}',en:'{}'}],
+ ['Q7725634','literary work','cultura',['P577'],30,PUBL],
+ ['Q3305213','painting','cultura',['P571'],30,{es:'{}',en:'{}'}],
  ['Q860861','sculpture','cultura',['P571'],30,{es:'{}',en:'{}'}],
- ['Q11424','film','cultura',['P577'],90,ESTR],
- ['Q2188189','musical work/composition','cultura',['P577','P571'],40,ESTR],
- ['Q41176','building','cultura',['P571','P1619'],60,CONS],
+ ['Q11424','film','cultura',['P577'],70,ESTR],
+ ['Q2188189','musical work/composition','cultura',['P577','P571'],30,ESTR],
+ ['Q41176','building','cultura',['P571','P1619'],45,CONS],
  ['Q4989906','monument','cultura',['P571','P1619'],30,{es:'{}: erección',en:'{} erected'}],
  ['Q7889','video game','cultura',['P577'],80,PUBL],
 ];
@@ -130,7 +130,7 @@ function anioDe(t){ const m=/^(-?\d+)-/.exec(t); if(!m)return null; const y=pars
 const LIMITE=4000;
 async function instancias(raiz,prop,minSl,desde,hasta,exacta){
  const q=`SELECT ?item ?t WHERE { ?item ${exacta?'wdt:P31':'wdt:P31/wdt:P279*'} wd:${raiz} . ?item wikibase:sitelinks ?sl . FILTER(?sl >= ${minSl}) ?item p:${prop}/psv:${prop} ?v . ?v wikibase:timeValue ?t ; wikibase:timePrecision ?p . FILTER(?p >= 9) FILTER(?t >= "${fecha(desde<0?desde+1:desde)}"^^xsd:dateTime && ?t < "${fecha(hasta<0?hasta+1:hasta)}"^^xsd:dateTime) } LIMIT ${LIMITE}`;
- const rs=await sparql(q);
+ let rs; try{ rs=await sparql(q) }catch(e){ if(hasta-desde>1){ const m=Math.floor((desde+hasta)/2); log('   '+raiz+' '+prop+' '+desde+'..'+hasta+' falla ('+e.message.slice(0,60)+'), parto'); return (await instancias(raiz,prop,minSl,desde,m,exacta)).concat(await instancias(raiz,prop,minSl,m,hasta,exacta)) } throw e }
  if(rs.length>=LIMITE&&hasta-desde>1){ const m=Math.floor((desde+hasta)/2); log('   '+raiz+' '+prop+' '+desde+'..'+hasta+' lleno, parto'); return (await instancias(raiz,prop,minSl,desde,m,exacta)).concat(await instancias(raiz,prop,minSl,m,hasta,exacta)) }
  return rs.map(b=>({item:qid(v(b,'item')),t:v(b,'t')}));
 }

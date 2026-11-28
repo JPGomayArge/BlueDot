@@ -264,5 +264,11 @@ module.exports = [
  { id:'nepal_2008', cat:'politica', imp:3, y:2008, lat:27.7, lon:85.32, reg:'asia_sur', es:'Nepal abole la monarquía', en:'Nepal abolishes the monarchy', wiki:'Guerra civil nepalesa', wiki_en:'Nepalese Civil War' },
  { id:'hong_kong_2019', cat:'politica', imp:4, y:2019, lat:22.28, lon:114.16, reg:'asia_oriental', es:'Las protestas de Hong Kong', en:'The Hong Kong protests', wiki:'Protestas en Hong Kong de 2019-2021', wiki_en:'2019–2020 Hong Kong protests' },
  { id:'myanmar_2021', cat:'politica', imp:3, y:2021, lat:19.75, lon:96.1, reg:'asia_sur', es:'Golpe de Estado en Myanmar', en:'Coup d\'état in Myanmar', wiki:'Golpe de Estado en Birmania de 2021', wiki_en:'2021 Myanmar coup d\'état' },
+ // --- hechos que la lista de control (vitales.js) echo en falta ----------------------
+ { id:'agincourt', cat:'guerras', imp:4, y:1415, lat:50.46, lon:2.14, reg:'europa', es:'Batalla de Azincourt', en:'Battle of Agincourt', wiki:'Batalla de Azincourt', wiki_en:'Battle of Agincourt' },
+ { id:'guerra_rosas', cat:'guerras', imp:3, y:1455, fin:1487, lat:51.75, lon:-0.34, reg:'europa', es:'Guerra de las Dos Rosas', en:'Wars of the Roses', wiki:'Guerra de las Dos Rosas', wiki_en:'Wars of the Roses' },
+ { id:'viena_1529', cat:'guerras', imp:4, y:1529, lat:48.21, lon:16.37, reg:'europa', es:'Primer sitio otomano de Viena', en:'First Ottoman siege of Vienna', wiki:'Sitio de Viena (1529)', wiki_en:'Siege of Vienna (1529)' },
+ { id:'paz_augsburgo', cat:'religion', imp:4, y:1555, lat:48.37, lon:10.9, reg:'europa', es:'La Paz de Augsburgo: cada príncipe decide la religión de sus súbditos', en:'The Peace of Augsburg, each prince decides his subjects\' religion', wiki:'Paz de Augsburgo', wiki_en:'Peace of Augsburg' },
+ { id:'guerra_siete_anos', cat:'guerras', imp:5, y:1756, fin:1763, lat:51.05, lon:13.74, reg:'europa', es:'La guerra de los Siete Años, la primera guerra mundial', en:'The Seven Years\' War, the first world war', wiki:'Guerra de los Siete Años', wiki_en:'Seven Years\' War', nota:'Se combatió en Europa, América, la India y África; Gran Bretaña ganó Canadá y la India.' },
 ];
 module.exports.META = META;
